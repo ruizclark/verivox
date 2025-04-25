@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+/jspm_packages/
+/bower_components
+/web_modules/
 
 # next.js
 /.next/
@@ -9,19 +12,64 @@
 
 # production
 /build
+/dist
+
+# env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-
-# env files
-.env*
-
-# vercel
-.vercel
+pnpm-debug.log*
+lerna-debug.log*
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# vercel
+.vercel/
+
+# logs
+logs
+*.log
+
+# runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# coverage
+coverage/
+*.lcov
+.nyc_output
+
+# build cache
+.cache
+.parcel-cache
+.serverless/
+.nuxt
+.vuepress/dist
+.temp
+.cache
+.docusaurus
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test
+
+# output of 'npm pack'
+*.tgz
+
+# yarn integrity
+.yarn-integrity
+
+# optional caches
+.npm
+
