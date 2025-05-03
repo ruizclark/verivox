@@ -3,6 +3,8 @@
 "use client"
 
 import React, { useState } from "react"
+// — use the shared Supabase client
+import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -15,6 +17,7 @@ export default function ResumeUpload({
   userId,
   onUploadSuccess,
 }: ResumeUploadProps) {
+  const supabase = useSupabaseClient()  // shared instance
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState("")
 
@@ -25,31 +28,39 @@ export default function ResumeUpload({
     setUploading(true)
     setMessage("")
 
-    // Build FormData
-    const formData = new FormData()
-    formData.append("file", file)
-    formData.append("userId", userId)
+    // Build a unique path for the file
+    const path = `${userId}/${Date.now()}-${file.name}`
 
-    // Call your server-side route
-    const res = await fetch("/api/upload-resume", {
-      method: "POST",
-      body: formData,
-    })
-    const json = await res.json()
+    // 1️⃣ Upload the file
+    const { error: uploadError } = await supabase.storage
+      .from("resumes")
+      .upload(path, file, {
+        upsert: true,
+        contentType: file.type,
+      })
 
-    if (json.error) {
-      console.error("❌ Upload failed:", json.error)
-      setMessage("Upload failed: " + json.error)
+    if (uploadError) {
+      console.error("❌ Upload failed:", uploadError.message)
+      setMessage("Upload failed: " + uploadError.message)
       setUploading(false)
       return
     }
 
-    console.log("✅ Upload succeeded! Public URL:", json.publicUrl)
+    // 2️⃣ Retrieve the public URL
+    // — getPublicUrl returns only `{ data: { publicUrl: string } }`
+    const { data: urlData } = supabase.storage
+      .from("resumes")
+      .getPublicUrl(path)
+
+    const publicUrl = urlData.publicUrl
+    console.log("✅ Upload succeeded! Public URL:", publicUrl)
     setMessage("Upload successful!")
 
+    // 3️⃣ Notify parent
     if (onUploadSuccess) {
-      onUploadSuccess(json.publicUrl)
+      onUploadSuccess(publicUrl)
     }
+
     setUploading(false)
   }
 

@@ -1,62 +1,59 @@
 // app/admin/approvals/page.tsx
 
 import React from "react"
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { supabaseAdmin } from "@/lib/supabase/admin"
+import ApproveButton from "@/components/ApproveButton"  // <- client-only
 
-// Define the shape of a profile record
 type Profile = {
   id: string
-  name: string
+  full_name: string
 }
 
-// Server component for listing and approving user profiles
 export default async function AdminApprovalsPage() {
-  // 1. Fetch profiles where `approved = false`
-  const { data: profiles, error } = await supabaseAdmin
-    .from<Profile>("profiles")
-    .select("id, name")
+  // ── 1) Call cookies() once here ──
+  const cookieStore = cookies()
+
+  // ── 2) Pass a function that returns that same store ──
+  const authClient = createRouteHandlerClient({
+    cookies: () => cookieStore,
+  })
+
+  const {
+    data: { session },
+  } = await authClient.auth.getSession()
+
+  if (!session?.user || !session.user.user_metadata?.is_admin) {
+    // Non-admin or not signed in
+    return <p>You must be signed in as an admin to view this page.</p>
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("id, full_name")
     .eq("approved", false)
 
-  // 2. Handle any fetch errors
   if (error) {
     return <p className="text-red-500">Error loading profiles: {error.message}</p>
   }
 
-  // 3. Show a message if there are none pending
-  if (!profiles || profiles.length === 0) {
+  const profiles = (data as Profile[]) || []
+  if (profiles.length === 0) {
     return <p>All profiles are approved!</p>
   }
 
-  // 4. Render the list of unapproved profiles
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-bold">Pending Approvals</h1>
+    <div className="p-6 space-y-4">
+      <h1 className="text-3xl font-bold">Pending Approvals</h1>
       {profiles.map((p) => (
         <div
           key={p.id}
-          className="flex items-center justify-between p-2 border rounded"
+          className="flex items-center justify-between p-4 border rounded-lg"
         >
-          <p className="font-semibold">{p.name}</p>
-          <button
-            onClick={async () => {
-              // Call the approve API route
-              const res = await fetch("/api/approve", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: p.id }),
-              })
-              const json = await res.json()
-              if (res.ok) {
-                // Reload to remove the approved profile from the list
-                window.location.reload()
-              } else {
-                alert("Approve failed: " + json.error)
-              }
-            }}
-            className="px-3 py-1 bg-blue-600 text-white rounded"
-          >
-            Approve
-          </button>
+          <span className="font-semibold">{p.full_name}</span>
+          {/* ← This is the only interactive piece now */}
+          <ApproveButton id={p.id} />
         </div>
       ))}
     </div>

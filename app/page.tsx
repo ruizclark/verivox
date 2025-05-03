@@ -33,7 +33,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col gap-3 min-[400px]:flex-row">
-                <Link href="/register">
+                <Link href="/signup">
                   <Button size="lg" className="bg-harvard-crimson hover:bg-harvard-crimson/90">
                     Join the Community
                   </Button>
