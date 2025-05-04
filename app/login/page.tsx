@@ -2,8 +2,7 @@
 
 "use client"  // we need React hooks here
 
-import React, { useState } from "react"
-// ✅ Use the single shared client and session from context:
+import React, { useState, useEffect } from "react"  // EDIT: added useEffect
 import {
   useSupabaseClient,
   useSession,
@@ -13,65 +12,53 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 export default function LoginPage() {
-  // — Grab the shared Supabase client and session
   const supabase = useSupabaseClient()
   const session = useSession()
   const router = useRouter()
+
+  // EDIT: when session exists, redirect based on whether profile.slug exists
+  useEffect(() => {
+    if (session) {
+      ;(async () => {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("slug")
+          .eq("id", session.user.id)
+          .single()
+        if (error) {
+          console.error("Error checking profile:", error)
+          return router.push("/register")
+        }
+        if (data?.slug) {
+          router.push("/")          // existing user → home
+        } else {
+          router.push("/register")  // new user → register
+        }
+      })()
+    }
+  }, [session, supabase, router])
 
   // — form state
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
-  // ✅ Derive logged-in state directly from session
-  const alreadyLoggedIn = !!session?.user
-  const userEmail = session?.user?.email ?? ""
-
-  // — handler for the login form
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
 
-    // 🚫 Block if already signed in
-    if (alreadyLoggedIn) {
-      setErrorMsg(`Already signed in as ${userEmail}. Please log out first.`)
-      return
-    }
-
-    // 🔑 Perform sign-in
+    // 🔑 Perform sign‐in
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) {
       setErrorMsg(error.message)
-    } else {
-      router.push("/register")
     }
+    // 🚫 REMOVE: unconditional router.push("/register") 
+    // redirect now handled in useEffect after session
   }
 
-  // — if already logged in, show a logout option instead of the form
-  if (alreadyLoggedIn) {
-    return (
-      <div className="max-w-md mx-auto py-8 text-center">
-        <p className="mb-4">
-          You’re already signed in as <strong>{userEmail}</strong>.
-        </p>
-        <Button
-          onClick={async () => {
-            // 1) Sign out
-            await supabase.auth.signOut()
-            // 2) Redirect back here to show the login form
-            router.push("/login")
-          }}
-        >
-          Log out
-        </Button>
-      </div>
-    )
-  }
-
-  // — otherwise render the login form
   return (
     <div className="max-w-md mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Log In to VERIVOX</h1>

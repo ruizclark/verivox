@@ -12,12 +12,12 @@ type Profile = {
 
 export default async function ProfilesPage() {
   // 1. Fetch only approved profiles using the service-role client
-  const { data: profiles, error } = await supabaseAdmin
-    .from<Profile>("profiles")
+  const { data, error } = await supabaseAdmin
+    .from("profiles")                // EDIT: removed generic <Profile>
     .select("id, full_name, resume_url")
     .eq("approved", true)
 
-  // 2. Handle errors or empty state
+  // 2. Handle errors
   if (error) {
     return (
       <p className="text-red-500">
@@ -25,6 +25,10 @@ export default async function ProfilesPage() {
       </p>
     )
   }
+
+  // EDIT: cast the returned `data` to our Profile[] type
+  const profiles = data as Profile[] | null
+
   if (!profiles || profiles.length === 0) {
     return <p>No profiles are approved yet.</p>
   }

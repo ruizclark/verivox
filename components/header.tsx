@@ -1,3 +1,5 @@
+// components/header.tsx
+
 "use client"
 
 import Link from "next/link"
@@ -26,7 +28,7 @@ export function Header() {
             alt="VERIVOX Logo"
             width={40}
             height={40}
-            priority  // you saw an LCP warning—this fixes it
+            priority
             className="h-10 w-auto"
           />
           <span className="hidden font-serif text-xl font-bold text-harvard-crimson sm:inline-block">
@@ -42,27 +44,50 @@ export function Header() {
         {/* Auth buttons */}
         <div className="flex items-center gap-2">
           {loggedIn ? (
-            // ✅ Use the shared client to sign out
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                await supabase.auth.signOut()
-                router.push("/login")
-              }}
-            >
-              Log out
-            </Button>
-          ) : (
             <>
-              <Link href="/login">
-                <Button variant="outline" size="sm" className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50">
-                  Log in
+              {/* EDIT: "Edit Profile" button unchanged */}
+              <Link href="/register">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Edit Profile
                 </Button>
               </Link>
-              <Link href="/register">
-                <Button size="sm" className="bg-harvard-crimson hover:bg-harvard-crimson/90">
+
+              {/* Log out remains red */}
+              <Button
+                size="sm"
+                className="bg-harvard-crimson text-white hover:bg-harvard-crimson/90"
+                onClick={async () => {
+                  await supabase.auth.signOut()
+                  router.push("/login")
+                }}
+              >
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* EDIT: make Register button white/outline like Edit Profile */}
+              <Link href="/signup">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
                   Register
+                </Button>
+              </Link>
+
+              {/* Log in stays red */}
+              <Link href="/login">
+                <Button
+                  size="sm"
+                  className="bg-harvard-crimson text-white hover:bg-harvard-crimson/90"
+                >
+                  Log in
                 </Button>
               </Link>
             </>
