@@ -22,9 +22,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    // 2️⃣ Pull every field sent from the frontend (no interests)
+    // 2️⃣ Pull every field sent from the frontend (including slug & photo_url)
     const {
       full_name,
+      slug,             // ⬅️ existing: slug from front end
+      photo_url,        // ⬅️ EDIT: added photo_url here
       graduation_year,
       title,
       employer,
@@ -44,6 +46,8 @@ export async function POST(req: Request) {
           {
             id:               user.id,
             full_name,
+            slug,           // ⬅️ existing: include slug
+            photo_url,      // ⬅️ EDIT: include photo_url in upsert
             graduation_year,
             title,
             employer,

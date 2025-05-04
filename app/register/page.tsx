@@ -1,10 +1,10 @@
-// app/register/page.tsx
 "use client"
 
 import React, { useState, useEffect } from "react"
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 import ResumeUpload from "@/components/ResumeUpload"
+import PhotoUpload from "@/components/PhotoUpload"       // NEW: import PhotoUpload
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -31,15 +31,16 @@ export default function RegisterPage() {
   }, [router, session])
 
   // --- Form state ---
-  const [fullName, setFullName]           = useState("")  // full_name
-  const [graduationYear, setGraduationYear] = useState("")// graduation_year
-  const [title, setTitle]                 = useState("")  // title
-  const [employer, setEmployer]           = useState("")  // employer
-  const [location, setLocation]           = useState("")  // location
-  const [linkedinUrl, setLinkedinUrl]     = useState("")  // linkedin_url (optional)
-  const [websiteUrl, setWebsiteUrl]       = useState("")  // website_url (optional)
-  const [resumeUrl, setResumeUrl]         = useState("")  // resume_url
-  const [about, setAbout]                 = useState("")  // about
+  const [fullName, setFullName]             = useState("")  
+  const [graduationYear, setGraduationYear] = useState("")  
+  const [title, setTitle]                   = useState("")  
+  const [employer, setEmployer]             = useState("")  
+  const [location, setLocation]             = useState("")  
+  const [linkedinUrl, setLinkedinUrl]       = useState("")  
+  const [websiteUrl, setWebsiteUrl]         = useState("")  
+  const [resumeUrl, setResumeUrl]           = useState("")  
+  const [about, setAbout]                   = useState("")  
+  const [photoUrl, setPhotoUrl]             = useState("")  // NEW: state for photo_url
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -48,15 +49,26 @@ export default function RegisterPage() {
     e.preventDefault()
     setErrorMsg("")
 
+    // EDIT: require photo upload
+    if (!photoUrl) {
+      return setErrorMsg("Please upload a profile photo.")
+    }
+
     if (!userId)                return setErrorMsg("Not signed in.")
     if (!fullName.trim())       return setErrorMsg("Full name is required.")
     if (!graduationYear)        return setErrorMsg("Graduation year is required.")
     if (!title.trim())          return setErrorMsg("Title is required.")
-    if (!employer.trim())       return setErrorMsg("Organization is required.")  // updated label
+    if (!employer.trim())       return setErrorMsg("Organization is required.")
     if (!location.trim())       return setErrorMsg("Location is required.")
     if (!resumeUrl)             return setErrorMsg("Please upload your résumé.")
     if (!about.trim())          return setErrorMsg("Please share something about yourself.")
-    // LinkedIn & Website are now optional → no checks here
+
+    // EDIT: generate slug
+    const slug = fullName
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/[^\w-]/g, "")
 
     setSubmitting(true)
 
@@ -65,12 +77,14 @@ export default function RegisterPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         full_name:       fullName,
+        slug,                    // existing: include slug
+        photo_url:       photoUrl,  // EDIT: include photo_url
         graduation_year: parseInt(graduationYear, 10),
         title,
         employer,
         location,
-        linkedin_url:    linkedinUrl,  // may be empty
-        website_url:     websiteUrl,   // may be empty
+        linkedin_url:    linkedinUrl,
+        website_url:     websiteUrl,
         resume_url:      resumeUrl,
         about,
         approved:        false,
@@ -81,7 +95,7 @@ export default function RegisterPage() {
     setSubmitting(false)
 
     if (res.ok) {
-      router.push("/register/pending")  // → new pending page
+      router.push("/register/pending")
     } else {
       setErrorMsg(json.error || "Registration failed.")
     }
@@ -143,7 +157,7 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* Organization (formerly Employer) */}
+        {/* Organization */}
         <div>
           <label className="block text-sm font-medium">Organization</label>
           <Input
@@ -207,6 +221,18 @@ export default function RegisterPage() {
                 View
               </a>
             </p>
+          )}
+        </div>
+
+        {/* Photo Upload */}
+        <div>
+          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  {/* EDIT: insert PhotoUpload */}
+          {photoUrl && (
+            <img
+              src={photoUrl}
+              alt="Profile Photo"
+              className="mt-2 h-24 w-24 rounded-full object-cover"
+            />
           )}
         </div>
 
