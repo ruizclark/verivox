@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, User, Tag, Share2 } from "lucide-react"
 
-// Import the types we exported from page.tsx
+// — Now this will correctly pick up the types you exported above —
 import type { Article, RelatedArticle } from "./page"
 
 export default function ArticleDetailClient({
@@ -19,13 +19,13 @@ export default function ArticleDetailClient({
   return (
     <div className="container py-10">
       <div className="mx-auto max-w-4xl">
+        {/* Back link */}
         <Link href="/articles" className="text-harvard-crimson hover:underline">
           ← Back to Articles
         </Link>
 
-        <h1 className="font-serif text-3xl font-bold mt-4">
-          {article.title}
-        </h1>
+        {/* Title & meta */}
+        <h1 className="font-serif text-3xl font-bold mt-4">{article.title}</h1>
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground my-2">
           <User className="h-4 w-4" />
           <Link
@@ -40,6 +40,7 @@ export default function ArticleDetailClient({
           <span>{article.category}</span>
         </div>
 
+        {/* Hero image */}
         {article.image_url && (
           <div className="mb-8 overflow-hidden rounded-lg">
             <Image
@@ -52,11 +53,13 @@ export default function ArticleDetailClient({
           </div>
         )}
 
+        {/* Content */}
         <div
           className="prose prose-lg max-w-none"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
+        {/* Share & View Author */}
         <div className="my-8 flex items-center justify-between border-t border-b py-4">
           <div className="flex items-center gap-2">
             <span className="font-medium">Share this article:</span>
@@ -72,6 +75,7 @@ export default function ArticleDetailClient({
           </Link>
         </div>
 
+        {/* Related Articles */}
         {article.related.length > 0 && (
           <div className="my-12">
             <h2 className="font-serif text-2xl font-bold mb-6">

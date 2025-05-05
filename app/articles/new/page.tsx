@@ -1,3 +1,5 @@
+// app/articles/new/page.tsx
+
 "use client"
 
 import React, { useState, useEffect } from "react"
@@ -6,61 +8,70 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
 
 export default function NewArticlePage() {
   const session = useSession()
   const supabase = useSupabaseClient()
   const router = useRouter()
 
+  const DEFAULT_BANNER_URL = "/images/verivox-banner.png"
+
   // Redirect unauthorized users to login
   useEffect(() => {
-    if (!session) {
-      router.push("/login")
-    }
+    if (!session) router.push("/login")
   }, [session, router])
 
   // --- Form state ---
-  const [title, setTitle]       = useState("")   // EDIT: form field
-  const [excerpt, setExcerpt]   = useState("")   // EDIT: form field
-  const [content, setContent]   = useState("")   // EDIT: form field
-  const [imageUrl, setImageUrl] = useState("")   // EDIT: form field
-  const [date, setDate]         = useState("")   // EDIT: form field
-  const [category, setCategory] = useState("")   // EDIT: form field
-  const [featured, setFeatured] = useState(false)// EDIT: form field
-  const [loading, setLoading]   = useState(false)
+  const [title, setTitle] = useState("")
+  const [excerpt, setExcerpt] = useState("")
+  const [content, setContent] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
+  const [category, setCategory] = useState("")
+  const [useDefaultBanner, setUseDefaultBanner] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
 
-    // Basic validation
     if (!title.trim() || !content.trim()) {
-      return setErrorMsg("Title and content are required.")
+      setErrorMsg("Title and content are required.")
+      return
     }
 
     setLoading(true)
 
-    // Insert new article; ask Supabase to return the new ID
+    // compute date here instead of asking user
+    const currentDate = new Date().toISOString()
+
+    // choose final image URL
+    const finalImageUrl = useDefaultBanner
+      ? DEFAULT_BANNER_URL
+      : imageUrl
+
     const { data, error } = await supabase
       .from("articles")
       .insert([
         {
-          author_id:    session!.user.id,
-          author_name:  session!.user.user_metadata.full_name || session!.user.email,
+          author_id:   session!.user.id,
+          author_name: session!.user.user_metadata.full_name ||
+                       session!.user.email,
           title,
           excerpt,
           content,
-          image_url:    imageUrl,
-          date:         date || new Date().toISOString().split("T")[0],
+          image_url:   finalImageUrl,
+          date:        currentDate,
           category,
-          featured,
+          // ✨ EDIT: removed `featured` field—backend will handle which is featured
         },
       ])
-      .select("id")  // EDIT: ask Supabase to return the new id
-
-    // 🔍 LOGGING: inspect what Supabase gave us
-    console.log("[Publish] supabase.insert →", { data, error })
+      .select("id")
 
     setLoading(false)
 
@@ -68,16 +79,17 @@ export default function NewArticlePage() {
       setErrorMsg(error.message)
       return
     }
-    if (!data || data.length === 0) {
+
+    const newId = data?.[0]?.id
+    if (!newId) {
       setErrorMsg("Unable to retrieve the new article ID.")
       return
     }
 
-    const newId = data[0].id
+    // ✨ EDIT: wrap the path in backticks for interpolation
     router.push(`/articles/${newId}`)
   }
 
-  // Don't render form until session is loaded
   if (!session) return null
 
   return (
@@ -98,7 +110,7 @@ export default function NewArticlePage() {
 
         {/* Excerpt */}
         <div>
-          <label className="block text-sm font-medium">Excerpt</label>
+          <label className="block text-sm font-medium">Excerpt (200 Characters Max)</label>
           <Textarea
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
@@ -117,54 +129,50 @@ export default function NewArticlePage() {
           />
         </div>
 
-        {/* Image URL */}
+        {/* Image URL with tooltip and default banner option */}
         <div>
-          <label className="block text-sm font-medium">Image URL</label>
+          <label className="flex items-center text-sm font-medium">
+            Image URL
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground text-xs"
+                  aria-label="Image URL help"
+                >
+                  ?
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" align="start" className="max-w-xs">
+                <p className="text-sm">
+                  Image tools like Canva let you copy a shareable URL, or you
+                  can right-click any web image and “Copy image address.”
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </label>
           <Input
             type="url"
             placeholder="https://example.com/image.jpg"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
-            disabled={loading}
+            disabled={loading || useDefaultBanner}
           />
-        </div>
 
-        {/* Date */}
-        <div>
-          <label className="block text-sm font-medium">Date</label>
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium">Category</label>
-          <Input
-            type="text"
-            placeholder="e.g. Leadership"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-
-        {/* Featured */}
-        <div className="flex items-center">
-          <input
-            id="featured"
-            type="checkbox"
-            checked={featured}
-            onChange={(e) => setFeatured(e.target.checked)}
-            disabled={loading}
-            className="h-4 w-4"
-          />
-          <label htmlFor="featured" className="ml-2 text-sm">
-            Featured
-          </label>
+          {/* default banner checkbox */}
+          <div className="mt-2 flex items-center">
+            <input
+              id="useDefaultBanner"
+              type="checkbox"
+              checked={useDefaultBanner}
+              onChange={(e) => setUseDefaultBanner(e.target.checked)}
+              disabled={loading}
+              className="h-4 w-4"
+            />
+            <label htmlFor="useDefaultBanner" className="ml-2 text-sm">
+              Use the standard VERIVOX banner instead of my own image
+            </label>
+          </div>
         </div>
 
         {/* Publish button */}

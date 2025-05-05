@@ -10,6 +10,8 @@ import { Footer } from "@/components/footer"
 import { ScrollAnimation } from "@/components/scroll-animation"
 // ✅ NEW: import our top-level Supabase context provider
 import SupabaseProvider from "./providers/SupabaseProvider"
+// ✨ EDIT: import TooltipProvider
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -34,12 +36,15 @@ export default function RootLayout({
         {/* ✅ Wrap entire app in SupabaseProvider so all hooks share one client */}
         <SupabaseProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            <div className="flex min-h-screen flex-col">
-              <ScrollAnimation />
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            {/* ✨ EDIT: Wrap in TooltipProvider with zero hover delay */}
+            <TooltipProvider delayDuration={0}>
+              <div className="flex min-h-screen flex-col">
+                <ScrollAnimation />
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+            </TooltipProvider>
           </ThemeProvider>
         </SupabaseProvider>
       </body>
