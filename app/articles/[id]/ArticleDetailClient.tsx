@@ -1,100 +1,21 @@
+// app/articles/[id]/ArticleDetailClient.tsx
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { useSupabaseClient } from "@supabase/auth-helpers-react"
+import React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, User, Tag, Share2 } from "lucide-react"
 
-type RelatedArticle = {
-  id: string
-  title: string
-  image_url: string | null
-}
+// Import the types we exported from page.tsx
+import type { Article, RelatedArticle } from "./page"
 
-type Article = {
-  id: string
-  title: string
-  author_name: string
-  author_id: string
-  date: string
-  category: string
-  image_url: string | null
-  content: string
-  related: RelatedArticle[]
-}
-
-export default function ArticlePage() {
-  const { id } = useParams()!
-  const supabase = useSupabaseClient()
-  const router = useRouter()
-
-  const [article, setArticle] = useState<Article | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!id) return
-    setLoading(true)
-
-    supabase
-      .from("articles")
-      .select(`
-        id,
-        title,
-        author_name,
-        author_id,
-        date,
-        category,
-        image_url,
-        content,
-        related_articles!related_articles_article_id_fkey (
-          related_article_id (
-            id,
-            title,
-            image_url
-          )
-        )
-      `)
-      .eq("id", id)
-      .single()
-      .then(({ data, error }) => {
-        setLoading(false)
-        if (error || !data) {
-          setError("Article not found.")
-          return
-        }
-
-        setArticle({
-          ...data,
-          image_url: data.image_url?.trim() || null,
-          related: (data.related_articles || []).map((r: any) => ({
-            id: r.related_article_id.id,
-            title: r.related_article_id.title,
-            image_url: r.related_article_id.image_url?.trim() || null,
-          })),
-        })
-      })
-  }, [id, supabase])
-
-  if (loading) {
-    return <p className="text-center py-10">Loading…</p>
-  }
-  if (error) {
-    return (
-      <div className="text-center py-10">
-        <p className="text-red-500 mb-4">{error}</p>
-        <Button onClick={() => router.push("/articles")}>
-          Back to Articles
-        </Button>
-      </div>
-    )
-  }
-  if (!article) return null
-
+export default function ArticleDetailClient({
+  article,
+}: {
+  article: Article
+}) {
   return (
     <div className="container py-10">
       <div className="mx-auto max-w-4xl">
@@ -157,7 +78,7 @@ export default function ArticlePage() {
               Related Articles
             </h2>
             <div className="grid gap-6 sm:grid-cols-2">
-              {article.related.map((rel) => (
+              {article.related.map((rel: RelatedArticle) => (
                 <Link href={`/articles/${rel.id}`} key={rel.id}>
                   <Card className="overflow-hidden hover:shadow-lg transition">
                     {rel.image_url && (

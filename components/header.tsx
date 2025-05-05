@@ -38,14 +38,32 @@ export function Header() {
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-6">
-          {/* ... your links ... */}
+          {/* EDIT: reinsert top-level site links */}
+          <Link
+            href="/profiles"
+            className="font-serif text-sm font-medium transition-colors hover:text-harvard-crimson text-gray-700"
+          >
+            Profiles
+          </Link>
+          <Link
+            href="/articles"
+            className="font-serif text-sm font-medium transition-colors hover:text-harvard-crimson text-gray-700"
+          >
+            Articles
+          </Link>
+          <Link
+            href="/about"
+            className="font-serif text-sm font-medium transition-colors hover:text-harvard-crimson text-gray-700"
+          >
+            About
+          </Link>
         </nav>
 
         {/* Auth buttons */}
         <div className="flex items-center gap-2">
           {loggedIn ? (
             <>
-              {/* EDIT: "Edit Profile" button unchanged */}
+              {/* Edit Profile button */}
               <Link href="/register">
                 <Button
                   variant="outline"
@@ -56,7 +74,18 @@ export function Header() {
                 </Button>
               </Link>
 
-              {/* Log out remains red */}
+              {/* EDIT: Add New Article link for authenticated users */}
+              <Link href="/articles/new">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  New Article
+                </Button>
+              </Link>
+
+              {/* Log out button */}
               <Button
                 size="sm"
                 className="bg-harvard-crimson text-white hover:bg-harvard-crimson/90"
@@ -70,7 +99,7 @@ export function Header() {
             </>
           ) : (
             <>
-              {/* EDIT: make Register button white/outline like Edit Profile */}
+              {/* Register button */}
               <Link href="/signup">
                 <Button
                   variant="outline"
@@ -81,7 +110,7 @@ export function Header() {
                 </Button>
               </Link>
 
-              {/* Log in stays red */}
+              {/* Log in button */}
               <Link href="/login">
                 <Button
                   size="sm"
@@ -93,6 +122,7 @@ export function Header() {
             </>
           )}
 
+          {/* Mobile: profile icon */}
           <Link href="/profile" className="md:hidden">
             <UserCircle className="h-6 w-6 text-gray-700" />
           </Link>
