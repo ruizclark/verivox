@@ -1,5 +1,4 @@
-// app/articles/new/page.tsx
-
+// File: app/articles/new/page.tsx
 "use client"
 
 import React, { useState, useEffect } from "react"
@@ -8,11 +7,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip"
+import PhotoUpload from "@/components/PhotoUpload"  // ✅ import PhotoUpload
 
 export default function NewArticlePage() {
   const session = useSession()
@@ -30,9 +25,9 @@ export default function NewArticlePage() {
   const [title, setTitle] = useState("")
   const [excerpt, setExcerpt] = useState("")
   const [content, setContent] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
+  const [imageUrl, setImageUrl] = useState("")              // ✅ holds uploaded banner URL
   const [category, setCategory] = useState("")
-  const [useDefaultBanner, setUseDefaultBanner] = useState(false)
+  const [useDefaultBanner, setUseDefaultBanner] = useState(false)  // ✅ toggle default banner
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
 
@@ -46,29 +41,28 @@ export default function NewArticlePage() {
     }
 
     setLoading(true)
-
-    // compute date here instead of asking user
     const currentDate = new Date().toISOString()
 
-    // choose final image URL
+    // Determine final image URL:
+    // - use default banner if checked, otherwise use uploaded imageUrl
     const finalImageUrl = useDefaultBanner
-      ? DEFAULT_BANNER_URL
-      : imageUrl
+      ? DEFAULT_BANNER_URL                // ✅ default banner
+      : imageUrl                         // ✅ uploaded public URL
+
+    console.log("Saving banner URL:", finalImageUrl)  // ✅ DEBUG: what we write to DB
 
     const { data, error } = await supabase
       .from("articles")
       .insert([
         {
           author_id:   session!.user.id,
-          author_name: session!.user.user_metadata.full_name ||
-                       session!.user.email,
+          author_name: session!.user.user_metadata.full_name || session!.user.email,
           title,
           excerpt,
           content,
-          image_url:   finalImageUrl,
+          image_url:   finalImageUrl,       // ✅ use computed URL
           date:        currentDate,
           category,
-          // ✨ EDIT: removed `featured` field—backend will handle which is featured
         },
       ])
       .select("id")
@@ -86,7 +80,6 @@ export default function NewArticlePage() {
       return
     }
 
-    // ✨ EDIT: wrap the path in backticks for interpolation
     router.push(`/articles/${newId}`)
   }
 
@@ -110,7 +103,9 @@ export default function NewArticlePage() {
 
         {/* Excerpt */}
         <div>
-          <label className="block text-sm font-medium">Excerpt (200 Characters Max)</label>
+          <label className="block text-sm font-medium">
+            Excerpt (200 Characters Max)
+          </label>
           <Textarea
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
@@ -129,37 +124,28 @@ export default function NewArticlePage() {
           />
         </div>
 
-        {/* Image URL with tooltip and default banner option */}
+        {/* Image Upload / Default Banner */}
         <div>
-          <label className="flex items-center text-sm font-medium">
-            Image URL
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground text-xs"
-                  aria-label="Image URL help"
-                >
-                  ?
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" align="start" className="max-w-xs">
-                <p className="text-sm">
-                  Image tools like Canva let you copy a shareable URL, or you
-                  can right-click any web image and “Copy image address.”
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </label>
-          <Input
-            type="url"
-            placeholder="https://example.com/image.jpg"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            disabled={loading || useDefaultBanner}
-          />
-
-          {/* default banner checkbox */}
+          {!useDefaultBanner && (
+            <PhotoUpload
+              userId={session!.user.id}
+              bucket="banners"           // ✅ upload into the banners bucket
+              onUploadSuccess={setImageUrl}
+            />
+          )}
+          {imageUrl && !useDefaultBanner && (
+            <p className="text-green-600 text-sm">
+              Image uploaded!{" "}
+              <a
+                href={imageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View
+              </a>
+            </p>
+          )}
           <div className="mt-2 flex items-center">
             <input
               id="useDefaultBanner"
@@ -170,7 +156,7 @@ export default function NewArticlePage() {
               className="h-4 w-4"
             />
             <label htmlFor="useDefaultBanner" className="ml-2 text-sm">
-              Use the standard VERIVOX banner instead of my own image
+              Use the standard VERIVOX banner
             </label>
           </div>
         </div>

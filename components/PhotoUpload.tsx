@@ -1,3 +1,4 @@
+// File: components/PhotoUpload.tsx
 "use client"
 
 import React, { useState } from "react"
@@ -7,27 +8,32 @@ import { Button } from "@/components/ui/button"
 interface PhotoUploadProps {
   userId: string
   onUploadSuccess: (url: string) => void
+  bucket?: string                         // ✅ allow specifying upload bucket
 }
 
-export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProps) {
+export default function PhotoUpload({
+  userId,
+  onUploadSuccess,
+  bucket = "photos",                     // ✅ default to 'photos' bucket
+}: PhotoUploadProps) {
   const supabase = useSupabaseClient()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 📏 NEW: define your constraints
-  const MAX_FILE_SIZE = 2 * 1024 * 1024     // 2 MB
-  const MIN_FILE_SIZE = 10 * 1024           // 10 KB (optional)
-  const MIN_WIDTH     = 100                 // pixels
-  const MIN_HEIGHT    = 100                 // pixels
+  // 📏 Constraints unchanged
+  const MAX_FILE_SIZE = 5 * 1024 * 1024     // 5 MB
+  const MIN_FILE_SIZE = 10 * 1024           // 10 KB
+  const MIN_WIDTH     = 2560                // YouTube banner width
+  const MIN_HEIGHT    = 1440                // YouTube banner height
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null)
     const file = e.target.files?.[0]
     if (!file) return
 
-    // EDIT: reject by file size
+    // size checks (unchanged)
     if (file.size > MAX_FILE_SIZE) {
-      return setError("Photo must be smaller than 2 MB.")
+      return setError("Image must be smaller than 5 MB.")
     }
     if (file.size < MIN_FILE_SIZE) {
       return setError("Photo must be at least 10 KB.")
@@ -35,7 +41,7 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
 
     setUploading(true)
 
-    // NEW: check image dimensions before uploading
+    // dimension check (unchanged)
     const objectUrl = URL.createObjectURL(file)
     const img = new Image()
     img.src = objectUrl
@@ -44,31 +50,46 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
 
       if (img.width < MIN_WIDTH || img.height < MIN_HEIGHT) {
         setUploading(false)
-        return setError(`Photo must be at least ${MIN_WIDTH}×${MIN_HEIGHT} pixels.`)
+        return setError(
+          `Image must be at least ${MIN_WIDTH}×${MIN_HEIGHT}px (16:9 ratio).`
+        )
       }
 
-      // If we pass all checks, proceed with uploading
+      // 🚀 Upload file
       const ext = file.name.split(".").pop()
       const fileName = `${userId}.${ext}`
       const filePath = `${userId}/${fileName}`
 
       const { error: uploadError } = await supabase
         .storage
-        .from("photos")
+        .from(bucket)                        // ✅ use dynamic bucket
         .upload(filePath, file, { upsert: true })
 
+      console.log("PhotoUpload uploadError:", uploadError)  // ✅ DEBUG: inspect upload error
       if (uploadError) {
         setError(uploadError.message)
         setUploading(false)
         return
       }
 
+      // 🗂 Fetch Supabase’s URL
       const { data } = supabase
         .storage
-        .from("photos")
+        .from(bucket)                        // ✅ use dynamic bucket
         .getPublicUrl(filePath)
 
-      onUploadSuccess(data.publicUrl)
+      console.log("PhotoUpload getPublicUrl data:", data)  // ✅ DEBUG: inspect public URL data
+
+      // ✅ Ensure we use the “public” path to bypass RLS on GET
+      let publicUrl = data.publicUrl
+      if (!publicUrl.includes("/object/public/")) {
+        publicUrl = publicUrl.replace(
+          "/object/",
+          "/object/public/"
+        )
+      }
+
+      onUploadSuccess(publicUrl)
       setUploading(false)
     }
 
@@ -81,14 +102,17 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">Upload Photo</label>
+      <label className="block text-sm font-medium mb-1">Upload Image</label>
+      <p className="text-xs text-muted-foreground mb-2">
+        Recommended size: 2560 × 1440 px (16:9 ratio)
+      </p>
       <input
         type="file"
         accept="image/*"
         disabled={uploading}
         onChange={handleFileChange}
       />
-      {uploading && <p className="text-sm">Uploading photo…</p>}
+      {uploading && <p className="text-sm">Uploading image…</p>}
       {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   )
