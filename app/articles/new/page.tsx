@@ -1,18 +1,25 @@
-// app/articles/new/page.tsx
-
+// File: app/articles/new/page.tsx
 "use client"
 
+// ✅ EDIT: Polyfill findDOMNode so React Quill can work under Next.js App Router
+import ReactDOM from "react-dom"
+// – cast ReactDOM to any so TS lets us assign findDOMNode
+if (typeof (ReactDOM as any).findDOMNode !== "function") {
+  (ReactDOM as any).findDOMNode = (instance: any): any => instance
+}
+
 import React, { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
+import "react-quill/dist/quill.snow.css"
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+
+// ReactQuill only loads on client
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false })
 
 export default function NewArticlePage() {
   const session = useSession()
@@ -29,7 +36,7 @@ export default function NewArticlePage() {
   // --- Form state ---
   const [title, setTitle] = useState("")
   const [excerpt, setExcerpt] = useState("")
-  const [content, setContent] = useState("")
+  const [content, setContent] = useState<string>("")      // HTML string from ReactQuill
   const [imageUrl, setImageUrl] = useState("")
   const [category, setCategory] = useState("")
   const [useDefaultBanner, setUseDefaultBanner] = useState(false)
@@ -40,17 +47,16 @@ export default function NewArticlePage() {
     e.preventDefault()
     setErrorMsg("")
 
-    if (!title.trim() || !content.trim()) {
+    // ✅ EDIT: strip HTML tags to validate non-empty content
+    const plainText = content.replace(/<(.|\n)*?>/g, "").trim()
+    if (!title.trim() || !plainText) {
       setErrorMsg("Title and content are required.")
       return
     }
 
     setLoading(true)
 
-    // compute date here instead of asking user
     const currentDate = new Date().toISOString()
-
-    // choose final image URL
     const finalImageUrl = useDefaultBanner
       ? DEFAULT_BANNER_URL
       : imageUrl
@@ -60,15 +66,13 @@ export default function NewArticlePage() {
       .insert([
         {
           author_id:   session!.user.id,
-          author_name: session!.user.user_metadata.full_name ||
-                       session!.user.email,
+          author_name: session!.user.user_metadata.full_name || session!.user.email,
           title,
           excerpt,
-          content,
+          content,      // HTML content from editor
           image_url:   finalImageUrl,
           date:        currentDate,
           category,
-          // ✨ EDIT: removed `featured` field—backend will handle which is featured
         },
       ])
       .select("id")
@@ -86,7 +90,6 @@ export default function NewArticlePage() {
       return
     }
 
-    // ✨ EDIT: wrap the path in backticks for interpolation
     router.push(`/articles/${newId}`)
   }
 
@@ -110,22 +113,30 @@ export default function NewArticlePage() {
 
         {/* Excerpt */}
         <div>
-          <label className="block text-sm font-medium">Excerpt (200 Characters Max)</label>
+          <label className="block text-sm font-medium">Excerpt (150-200 Characters Recommended)</label>
           <Textarea
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
             disabled={loading}
+            rows={3}
           />
         </div>
 
-        {/* Content */}
+        {/* Content (WYSIWYG) */}
         <div>
           <label className="block text-sm font-medium">Content</label>
-          <Textarea
+          <ReactQuill
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            disabled={loading}
-            rows={10}
+            onChange={setContent}
+            theme="snow"
+            modules={{
+              toolbar: [
+                [{ header: [1, 2, false] }],
+                ["bold", "italic", "underline", "blockquote"],
+                [{ list: "ordered" }, { list: "bullet" }],
+                // ✅ EDIT: removed 'link' and 'image' options to simplify editor
+              ],
+            }}
           />
         </div>
 
@@ -145,8 +156,7 @@ export default function NewArticlePage() {
               </TooltipTrigger>
               <TooltipContent side="right" align="start" className="max-w-xs">
                 <p className="text-sm">
-                  Image tools like Canva let you copy a shareable URL, or you
-                  can right-click any web image and “Copy image address.”
+                  Right click on any publicly avaiable image on the web and select "Copy Image Address" to get the URL. Broken links will automatically be replaced with the standard VERIVOX banner.
                 </p>
               </TooltipContent>
             </Tooltip>
