@@ -3,7 +3,6 @@
 
 // ✅ EDIT: Polyfill findDOMNode so React Quill can work under Next.js App Router
 import ReactDOM from "react-dom"
-// – cast ReactDOM to any so TS lets us assign findDOMNode
 if (typeof (ReactDOM as any).findDOMNode !== "function") {
   (ReactDOM as any).findDOMNode = (instance: any): any => instance
 }
@@ -18,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
-// ReactQuill only loads on client
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false })
 
 export default function NewArticlePage() {
@@ -28,26 +26,24 @@ export default function NewArticlePage() {
 
   const DEFAULT_BANNER_URL = "/images/verivox-banner.png"
 
-  // Redirect unauthorized users to login
   useEffect(() => {
     if (!session) router.push("/login")
   }, [session, router])
 
   // --- Form state ---
-  const [title, setTitle] = useState("")
-  const [excerpt, setExcerpt] = useState("")
-  const [content, setContent] = useState<string>("")      // HTML string from ReactQuill
-  const [imageUrl, setImageUrl] = useState("")
-  const [category, setCategory] = useState("")
+  const [title, setTitle]               = useState("")
+  const [excerpt, setExcerpt]           = useState("")
+  const [content, setContent]           = useState<string>("")
+  const [imageUrl, setImageUrl]         = useState("")
+  // ✅ EDIT: removed category state entirely
   const [useDefaultBanner, setUseDefaultBanner] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [errorMsg, setErrorMsg] = useState("")
+  const [loading, setLoading]           = useState(false)
+  const [errorMsg, setErrorMsg]         = useState("")
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
 
-    // ✅ EDIT: strip HTML tags to validate non-empty content
     const plainText = content.replace(/<(.|\n)*?>/g, "").trim()
     if (!title.trim() || !plainText) {
       setErrorMsg("Title and content are required.")
@@ -69,10 +65,10 @@ export default function NewArticlePage() {
           author_name: session!.user.user_metadata.full_name || session!.user.email,
           title,
           excerpt,
-          content,      // HTML content from editor
+          content,
           image_url:   finalImageUrl,
           date:        currentDate,
-          category,
+          // ✅ EDIT: removed category from insert
         },
       ])
       .select("id")
@@ -113,7 +109,9 @@ export default function NewArticlePage() {
 
         {/* Excerpt */}
         <div>
-          <label className="block text-sm font-medium">Excerpt (150-200 Characters Recommended)</label>
+          <label className="block text-sm font-medium">
+            Excerpt (150-200 Characters Recommended)
+          </label>
           <Textarea
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
@@ -134,13 +132,13 @@ export default function NewArticlePage() {
                 [{ header: [1, 2, false] }],
                 ["bold", "italic", "underline", "blockquote"],
                 [{ list: "ordered" }, { list: "bullet" }],
-                // ✅ EDIT: removed 'link' and 'image' options to simplify editor
+                ["link", "image"],
               ],
             }}
           />
         </div>
 
-        {/* Image URL with tooltip and default banner option */}
+        {/* Image URL with tooltip & default banner */}
         <div>
           <label className="flex items-center text-sm font-medium">
             Image URL
@@ -156,7 +154,7 @@ export default function NewArticlePage() {
               </TooltipTrigger>
               <TooltipContent side="right" align="start" className="max-w-xs">
                 <p className="text-sm">
-                  Right click on any publicly avaiable image on the web and select "Copy Image Address" to get the URL. Broken links will automatically be replaced with the standard VERIVOX banner.
+                  Right click on a public web image &ndash; select “Copy Image Address.” If it breaks, we’ll default back to VERIVOX banner.
                 </p>
               </TooltipContent>
             </Tooltip>

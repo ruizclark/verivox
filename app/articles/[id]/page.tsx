@@ -8,11 +8,10 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, User, Tag, Share2 } from "lucide-react"
+import { Calendar, User, Share2 } from "lucide-react" // Tag icon removed
 import { format } from "date-fns"
-import { useToast } from "@/components/ui/use-toast"  // ✅ EDIT: import toast hook
+import { useToast } from "@/components/ui/use-toast"
 
-// — Types — 
 export type RelatedArticle = {
   id: string
   title: string
@@ -22,7 +21,7 @@ export type RelatedArticle = {
 export type Article = {
   id: string
   title: string
-  author_name: string      // fallback if profile full_name missing
+  author_name: string
   author_id: string
   date: string
   category: string
@@ -35,11 +34,11 @@ export default function ArticlePage() {
   const { id } = useParams()!
   const supabase = useSupabaseClient()
   const router = useRouter()
-  const { toast } = useToast()                   // ✅ EDIT: initialize toast
+  const { toast } = useToast()
 
   const [article, setArticle] = useState<Article | null>(null)
   const [authorFullName, setAuthorFullName] = useState<string | null>(null)
-  const [authorSlug, setAuthorSlug] = useState<string | null>(null)  // ✅ EDIT: state for slug
+  const [authorSlug, setAuthorSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imgError, setImgError] = useState(false)
@@ -76,7 +75,6 @@ export default function ArticlePage() {
           return
         }
 
-        // store article data
         setArticle({
           ...data,
           image_url: data.image_url?.trim() || null,
@@ -87,7 +85,6 @@ export default function ArticlePage() {
           })),
         })
 
-        // ✅ EDIT: fetch full_name and slug from profiles
         const { data: profile, error: profErr } = await supabase
           .from("profiles")
           .select("full_name, slug")
@@ -113,44 +110,51 @@ export default function ArticlePage() {
   }
   if (!article) return null
 
-  // use profile full_name if available, otherwise fallback to stored author_name
   const displayName = authorFullName || article.author_name
-
-  // format date to "Month D, YYYY"
   const formattedDate = format(new Date(article.date), "MMMM d, yyyy")
-
-  // share handler copies current URL and shows toast
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
     toast({ title: "Link copied to clipboard!" })
   }
-
-  // ✅ EDIT: build profile path using slug when available, otherwise fallback to ID
   const profileHref = authorSlug
-    ? `/${authorSlug}`            // root-level slug URL, e.g. /ruizclark
+    ? `/${authorSlug}`
     : `/profiles/${article.author_id}`
 
   return (
     <div className="container py-10">
       <div className="mx-auto max-w-4xl">
+        {/* Back link */}
         <Link href="/articles" className="text-harvard-crimson hover:underline">
           ← Back to Articles
         </Link>
+
+        {/* ✅ EDIT: re-insert Edit Article button */}
+        <div className="my-4">
+        <Link href={`/articles/${id}/edit`}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-harvard-crimson text-white hover:bg-harvard-crimson/90 hover:text-white"  // keep text white on hover
+          >
+            Edit Article
+          </Button>
+        </Link>
+        </div>
 
         <h1 className="font-serif text-3xl font-bold mt-4">{article.title}</h1>
 
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground my-2">
           <User className="h-4 w-4" />
           <Link
-            href={profileHref}                     // ✅ EDIT: use slug-based path
+            href={profileHref}
             className="hover:text-harvard-crimson hover:underline"
           >
             {displayName}
           </Link>
           <Calendar className="h-4 w-4 ml-4" />
           <span>{formattedDate}</span>
-          <Tag className="h-4 w-4 ml-4" />
-          <span>{article.category}</span>
+          {/* Category text without icon */}
+          <span className="ml-4">{article.category}</span>
         </div>
 
         <div className="mb-8 mx-auto w-full max-w-4xl h-64 relative overflow-hidden rounded-lg">
@@ -192,7 +196,7 @@ export default function ArticlePage() {
               <span className="sr-only">Share</span>
             </Button>
           </div>
-          <Link href={profileHref}>          {/* ✅ EDIT: and here */}
+          <Link href={profileHref}>
             <Button variant="outline" size="sm">
               View Author Profile
             </Button>
