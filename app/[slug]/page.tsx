@@ -1,5 +1,7 @@
+// app/[slug]/page.tsx
+
 import React from "react"
-import Link from "next/link"
+import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
 import Image from "next/image"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { notFound } from "next/navigation"
@@ -24,12 +26,12 @@ type Profile = {
 }
 
 type Article = {
-  id:         string
-  title:      string
-  author_name:string
-  date:       string
-  image_url:  string
-  excerpt:    string
+  id:          string
+  title:       string
+  author_name: string
+  date:        string
+  image_url:   string
+  excerpt:     string
 }
 
 export default async function SlugProfilePage({
@@ -145,26 +147,33 @@ export default async function SlugProfilePage({
                 <p className="text-gray-500">No articles published yet.</p>
               ) : (
                 articles.map((a) => (
-                  <Card key={a.id} className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
-                    {/* Banner image — full width, half-height */}
-                    <div className="w-full overflow-hidden">
-                      <Image
-                        src={a.image_url}
-                        alt={a.title}
-                        width={800}
-                        height={200}
-                        className="w-full object-cover"
-                        style={{ height: 200 }}  /* ← height halved */
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="font-serif text-xl font-bold text-gray-900">{a.title}</h3>
-                      <p className="text-sm text-gray-500 mb-2">
-                        {format(new Date(a.date), "MMMM d, yyyy")}
-                      </p>
-                      <p className="text-gray-600">{a.excerpt}</p>
-                    </CardContent>
-                  </Card>
+                  <Link
+                    href={`/articles/${a.id}`}                 // ✅ EDIT: wrap each Card in Link to its article
+                    key={a.id}
+                  >
+                    <Card className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
+                      {/* Banner image — full width, half-height */}
+                      <div className="w-full overflow-hidden">
+                        <Image
+                          src={a.image_url}
+                          alt={a.title}
+                          width={800}
+                          height={200}
+                          className="w-full object-cover"
+                          style={{ height: 200 }}
+                        />
+                      </div>
+                      <CardContent className="p-6">
+                        <h3 className="font-serif text-xl font-bold text-gray-900">
+                          {a.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-2">
+                          {format(new Date(a.date), "MMMM d, yyyy")}
+                        </p>
+                        <p className="text-gray-600">{a.excerpt}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))
               )}
             </section>

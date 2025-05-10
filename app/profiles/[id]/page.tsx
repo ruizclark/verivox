@@ -1,7 +1,7 @@
-// File: app/[id]/page.tsx
+// app/[id]/page.tsx
 
 import React from "react"
-import Link from "next/link"
+import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
 import Image from "next/image"
 import { supabaseAdmin } from "@/lib/supabase/admin"    // unchanged
 import { notFound } from "next/navigation"              // unchanged
@@ -10,6 +10,7 @@ import { notFound } from "next/navigation"              // unchanged
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Linkedin, Globe, FileText, MapPin, Calendar } from "lucide-react"
+import { format } from "date-fns"                     // ✅ EDIT: import date formatter
 
 // same Profile type as in [slug] page
 type Profile = {
@@ -24,6 +25,16 @@ type Profile = {
   about:           string
   slug:            string
   photo_url:       string
+  id:              string                                // ✅ EDIT: include id for fetching by author
+}
+
+type Article = {                                         // ✅ EDIT: add Article type
+  id:          string
+  title:       string
+  author_name: string
+  date:        string
+  image_url:   string
+  excerpt:     string
 }
 
 export default async function ProfileByIdPage({
@@ -33,19 +44,26 @@ export default async function ProfileByIdPage({
 }) {
   const { id } = params                                 // ✅ EDIT: destructure `id` instead of `slug`
 
-  // ✅ EDIT: fetch by primary-key `id` rather than slug
-  const { data, error } = await supabaseAdmin
+  // fetch by primary-key `id` rather than slug
+  const { data: pdata, error: perror } = await supabaseAdmin
     .from("profiles")
     .select("*")
-    .eq("id", id)                                       // changed filter field
+    .eq("id", id)
     .single()
-
-  if (error || !data) {
+  if (perror || !pdata) {
     return notFound()
   }
+  const profile = pdata as Profile
 
-  const profile = data as Profile
   const cohort = `Class of ${profile.graduation_year}`
+
+  // fetch articles by this author
+  const { data: adata, error: aerr } = await supabaseAdmin
+    .from("articles")
+    .select("id, title, author_name, date, image_url, excerpt")
+    .eq("author_id", profile.id)                     // ✅ EDIT: fetch by author_id
+    .order("date", { ascending: false })
+  const articles = (adata || []) as Article[]          // ✅ EDIT: cast to Article[]
 
   return (
     <div className="relative">
@@ -55,7 +73,7 @@ export default async function ProfileByIdPage({
         style={{ backgroundImage: `url(${profile.photo_url})` }}
       />
 
-      <div className="relative z-10 container py-10">
+      <div className="relative z-10 container py-10 space-y-10">
         <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
           {/* Sidebar */}
           <div className="space-y-6">
@@ -137,11 +155,45 @@ export default async function ProfileByIdPage({
               </CardContent>
             </Card>
 
-            <div className="flex justify-center">
-              <Link href="/profiles">
-                <Button variant="outline">Back to Profiles</Button>
-              </Link>
-            </div>
+            {/* Published Articles */}
+            <section className="space-y-6">
+              <h2 className="font-serif text-3xl font-bold tracking-tighter text-gray-900">
+                VERIVOX Articles
+              </h2>
+
+              {articles.length === 0 ? (
+                <p className="text-gray-500">No articles published yet.</p>
+              ) : (
+                articles.map((a) => (
+                  <Link
+                    href={`/articles/${a.id}`}                 // ✅ EDIT: wrap each Card in Link
+                    key={a.id}
+                  >
+                    <Card className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
+                      <div className="w-full overflow-hidden">
+                        <Image
+                          src={a.image_url}
+                          alt={a.title}
+                          width={800}
+                          height={200}
+                          className="w-full object-cover"
+                          style={{ height: 200 }}       // ✅ EDIT: banner half-height
+                        />
+                      </div>
+                      <CardContent className="p-6">
+                        <h3 className="font-serif text-xl font-bold text-gray-900">
+                          {a.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-2">
+                          {format(new Date(a.date), "MMMM d, yyyy")}
+                        </p>
+                        <p className="text-gray-600">{a.excerpt}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+              )}
+            </section>
           </div>
         </div>
       </div>
