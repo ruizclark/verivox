@@ -1,3 +1,6 @@
+// REMINDER: profile.id is mock data (params.id). You will need to replace it with an actual Supabase Auth user ID for security. 
+
+// From v0 template: 
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -118,6 +121,13 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     </Button>
                   </Link>
                 )}
+                {profile.resume_url && (
+                  <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="sm" className="gap-1">
+                      <FileText className="h-4 w-4" /> Download Résumé
+                    </Button>
+                  </a>
+                )}                
               </div>
             </CardContent>
           </Card>

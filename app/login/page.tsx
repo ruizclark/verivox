@@ -1,108 +1,91 @@
-"use client"
+// app/login/page.tsx
 
-import type React from "react"
+"use client"  // we need React hooks here
 
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState, useEffect } from "react"  // EDIT: added useEffect
+import {
+  useSupabaseClient,
+  useSession,
+} from "@supabase/auth-helpers-react"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    rememberMe: false,
-  })
+  const supabase = useSupabaseClient()
+  const session = useSession()
+  const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    })
-  }
+  // EDIT: when session exists, redirect based on whether profile.slug exists
+  useEffect(() => {
+    if (session) {
+      ;(async () => {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("slug")
+          .eq("id", session.user.id)
+          .single()
+        if (error) {
+          console.error("Error checking profile:", error)
+          return router.push("/register")
+        }
+        if (data?.slug) {
+          router.push("/")          // existing user → home
+        } else {
+          router.push("/register")  // new user → register
+        }
+      })()
+    }
+  }, [session, supabase, router])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // — form state
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, you would submit the form data to your backend
-    console.log("Form submitted:", formData)
-    // Redirect to the user's profile page
+    setErrorMsg("")
+
+    // 🔑 Perform sign‐in
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) {
+      setErrorMsg(error.message)
+    }
+    // 🚫 REMOVE: unconditional router.push("/register") 
+    // redirect now handled in useEffect after session
   }
 
   return (
-    <div className="container py-10">
-      <div className="mx-auto max-w-md">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
-          <Image src="/images/verivox-logo.png" alt="VERIVOX Logo" width={80} height={80} className="h-20 w-auto" />
-          <div className="space-y-2">
-            <h1 className="font-serif text-3xl font-bold tracking-tighter">Welcome Back</h1>
-            <p className="text-muted-foreground">Log in to your VERIVOX account</p>
-          </div>
+    <div className="max-w-md mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Log In to VERIVOX</h1>
+      {errorMsg && <p className="text-red-500 mb-2">{errorMsg}</p>}
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium">Email</label>
+          <Input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif text-xl">Log In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/forgot-password" className="text-xs text-harvard-crimson hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="h-4 w-4 rounded border-gray-300 text-harvard-crimson focus:ring-harvard-crimson"
-                />
-                <Label htmlFor="rememberMe" className="text-sm">
-                  Remember me
-                </Label>
-              </div>
-            </form>
-          </CardContent>
-          <CardFooter>
-            <Button
-              type="submit"
-              className="w-full bg-harvard-crimson hover:bg-harvard-crimson/90"
-              onClick={handleSubmit}
-            >
-              Log In
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <div className="mt-4 text-center text-sm">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-harvard-crimson hover:underline">
-            Register
-          </Link>
+        <div>
+          <label className="block text-sm font-medium">Password</label>
+          <Input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
-      </div>
+        <Button type="submit" className="w-full">
+          Log in
+        </Button>
+      </form>
     </div>
   )
 }
