@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, BookOpen, Users, FileText } from "lucide-react"
 import { supabaseAdmin } from "@/lib/supabase/admin"   // ✅ EDIT: import supabaseAdmin
 import { format } from "date-fns"                     // ✅ EDIT: import date formatter
+import AccountLink from "@/components/AccountLink"    // ✅ EDIT: import AccountLink for dynamic login/logout
 
 export default async function Home() {                // ✅ EDIT: made async to fetch data
   // ✅ EDIT: fetch the 3 most recent approved profiles
@@ -77,7 +78,7 @@ export default async function Home() {                // ✅ EDIT: made async to
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-harvard-crimson/5 rounded-full"></div>
               <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-harvard-crimson/5 rounded-full"></div>
 
-              {/* Logo with shadow effect */}
+              {/* Logo with transparent background */}
               <div className="relative bg-white rounded-xl shadow-xl p-8 h-full flex items-center justify-center">
                 <Image
                   src="/images/verivox-logo.png"
@@ -213,6 +214,7 @@ export default async function Home() {                // ✅ EDIT: made async to
               </p>
             </div>
           </div>
+
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:gap-12">
             {latestArticles?.map((a) => (
               <Link href={`/articles/${a.id}`} key={a.id}>
@@ -241,6 +243,7 @@ export default async function Home() {                // ✅ EDIT: made async to
               </Link>
             ))}
           </div>
+
           <div className="flex justify-center">
             <Link href="/articles">
               <Button variant="outline" className="gap-1 border-gray-300 text-gray-700 hover:bg-gray-50">
@@ -273,6 +276,14 @@ export default async function Home() {                // ✅ EDIT: made async to
               </Button>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Account Section - dynamic Log in / Log out */}
+      <section className="py-8 bg-white">                  {/* ✅ EDIT: added Account section */}
+        <div className="container px-4 md:px-6">
+          <h3 className="font-serif text-lg font-bold mb-2">Account</h3>
+          <AccountLink />                                  {/* ✅ EDIT: dynamic login/logout link */}
         </div>
       </section>
     </div>
