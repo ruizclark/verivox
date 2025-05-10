@@ -112,7 +112,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
             {/* ✅ EDIT: label changed from "Class of" to "Graduated" */}
             {cohorts.map((yr) => (
               <option key={yr} value={yr}>
-                Graduated {yr}
+                Class of {yr}
               </option>
             ))}
           </select>
@@ -144,7 +144,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
                     <h3 className="font-serif text-lg font-bold">{p.full_name}</h3>
                     {/* ✅ EDIT: label changed from "Class of" to "Graduated" */}
                     <p className="text-sm text-muted-foreground">
-                      Graduated {p.graduation_year}
+                      Class of {p.graduation_year}
                     </p>
                     <p className="mt-2 line-clamp-3 text-sm">
                       {p.title} at {p.employer}

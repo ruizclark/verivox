@@ -1,17 +1,13 @@
-// app/[slug]/page.tsx
-
 import React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { notFound } from "next/navigation"
-
-// 🆕 UI components & icons
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Linkedin, Globe, FileText, MapPin, Calendar } from "lucide-react"
+import { format } from "date-fns"
 
-// EDIT: include photo_url in Profile type
 type Profile = {
   full_name:       string
   graduation_year: number
@@ -24,6 +20,16 @@ type Profile = {
   about:           string
   slug:            string
   photo_url:       string
+  id:              string
+}
+
+type Article = {
+  id:         string
+  title:      string
+  author_name:string
+  date:       string
+  image_url:  string
+  excerpt:    string
 }
 
 export default async function SlugProfilePage({
@@ -34,35 +40,35 @@ export default async function SlugProfilePage({
   const { slug } = params
 
   // fetch the profile by slug
-  const { data, error } = await supabaseAdmin
+  const { data: pdata, error: perror } = await supabaseAdmin
     .from("profiles")
     .select("*")
     .eq("slug", slug)
     .single()
+  if (perror || !pdata) return notFound()
+  const profile = pdata as Profile
 
-  if (error || !data) {
-    return notFound()
-  }
+  // fetch all articles by this author
+  const { data: adata, error: aerr } = await supabaseAdmin
+    .from("articles")
+    .select("id, title, author_name, date, image_url, excerpt")
+    .eq("author_id", profile.id)
+    .order("date", { ascending: false })
+  const articles = (adata || []) as Article[]
 
-  // EDIT: cast to our Profile type
-  const profile = data as Profile
-
-  // derive cohort string
   const cohort = `Class of ${profile.graduation_year}`
 
   return (
-    // EDIT: wrapper for watermark and content
     <div className="relative">
-      {/* EDIT: watermark layer using the member’s photo */}
+      {/* watermark */}
       <div
         className="absolute inset-0 bg-center bg-cover opacity-10 pointer-events-none"
         style={{ backgroundImage: `url(${profile.photo_url})` }}
       />
 
-      {/* EDIT: content above watermark */}
-      <div className="relative z-10 container py-10">
+      <div className="relative z-10 container py-10 space-y-10">
         <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
-          {/* Sidebar */}
+          {/* sidebar */}
           <div className="space-y-6">
             <div className="flex flex-col items-center">
               <div className="relative h-60 w-60 overflow-hidden rounded-full border-4 border-harvard-crimson">
@@ -93,36 +99,23 @@ export default async function SlugProfilePage({
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{cohort}</span>
                 </div>
-
                 <div className="flex flex-wrap gap-2 pt-2">
                   {profile.linkedin_url && (
-                    <Link
-                      href={profile.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <Link href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="gap-1">
                         <Linkedin className="h-4 w-4" /> LinkedIn
                       </Button>
                     </Link>
                   )}
                   {profile.website_url && (
-                    <Link
-                      href={profile.website_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <Link href={profile.website_url} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="gap-1">
                         <Globe className="h-4 w-4" /> Website
                       </Button>
                     </Link>
                   )}
                   {profile.resume_url && (
-                    <a
-                      href={profile.resume_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="gap-1">
                         <FileText className="h-4 w-4" /> Download Résumé
                       </Button>
@@ -133,7 +126,7 @@ export default async function SlugProfilePage({
             </Card>
           </div>
 
-          {/* Main Content */}
+          {/* main content */}
           <div className="space-y-8">
             <Card>
               <CardContent className="p-6">
@@ -142,13 +135,39 @@ export default async function SlugProfilePage({
               </CardContent>
             </Card>
 
-            {/* EDIT: placeholder for future sections (Education, Experience, Publications) */}
+            {/* Published Articles */}
+            <section className="space-y-6">
+              <h2 className="font-serif text-3xl font-bold tracking-tighter text-gray-900">
+                VERIVOX Articles
+              </h2>
 
-            <div className="flex justify-center">
-              <Link href="/profiles">
-                <Button variant="outline">Back to Profiles</Button>
-              </Link>
-            </div>
+              {articles.length === 0 ? (
+                <p className="text-gray-500">No articles published yet.</p>
+              ) : (
+                articles.map((a) => (
+                  <Card key={a.id} className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
+                    {/* Banner image — full width, half-height */}
+                    <div className="w-full overflow-hidden">
+                      <Image
+                        src={a.image_url}
+                        alt={a.title}
+                        width={800}
+                        height={200}
+                        className="w-full object-cover"
+                        style={{ height: 200 }}  /* ← height halved */
+                      />
+                    </div>
+                    <CardContent className="p-6">
+                      <h3 className="font-serif text-xl font-bold text-gray-900">{a.title}</h3>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {format(new Date(a.date), "MMMM d, yyyy")}
+                      </p>
+                      <p className="text-gray-600">{a.excerpt}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </section>
           </div>
         </div>
       </div>
