@@ -1,217 +1,199 @@
-// REMINDER: profile.id is mock data (params.id). You will need to replace it with an actual Supabase Auth user ID for security. 
+// app/[id]/page.tsx
 
-// From v0 template: 
-import Link from "next/link"
+import React from "react"
+import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
 import Image from "next/image"
+import { supabaseAdmin } from "@/lib/supabase/admin"    // unchanged
+import { notFound } from "next/navigation"              // unchanged
+
+// UI components & icons (same as slug page)
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Linkedin, Globe, FileText, MapPin, Calendar, Mail } from "lucide-react"
+import { Linkedin, Globe, FileText, MapPin, Calendar } from "lucide-react"
+import { format } from "date-fns"                     // ✅ EDIT: import date formatter
 
-export default function ProfilePage({ params }: { params: { id: string } }) {
-  // In a real app, you would fetch the profile data based on the ID
-  const profile = {
-    id: params.id,
-    name: "Dr. Jane Smith",
-    cohort: "Class of 2023",
-    title: "Education Policy Researcher",
-    organization: "Harvard Graduate School of Education",
-    location: "Cambridge, MA",
-    email: "jane.smith@example.com",
-    bio: "Dr. Jane Smith is an education policy researcher with over 10 years of experience in K-12 education. Her research focuses on educational equity, school leadership, and policy implementation. She is passionate about creating more equitable educational opportunities for all students.",
-    linkedin: "https://linkedin.com/in/janesmith",
-    website: "https://janesmith.com",
-    interests: ["Educational Equity", "School Leadership", "Policy Implementation", "K-12 Education"],
-    education: [
-      {
-        degree: "Ed.L.D.",
-        institution: "Harvard Graduate School of Education",
-        year: "2023",
-      },
-      {
-        degree: "M.Ed.",
-        institution: "Teachers College, Columbia University",
-        year: "2015",
-      },
-      {
-        degree: "B.A. in Education",
-        institution: "University of Michigan",
-        year: "2010",
-      },
-    ],
-    experience: [
-      {
-        title: "Education Policy Researcher",
-        organization: "Harvard Graduate School of Education",
-        period: "2023 - Present",
-        description: "Conducting research on educational equity and policy implementation.",
-      },
-      {
-        title: "School Principal",
-        organization: "Boston Public Schools",
-        period: "2018 - 2020",
-        description: "Led a K-8 school with 500 students and 50 staff members.",
-      },
-      {
-        title: "Teacher",
-        organization: "New York City Department of Education",
-        period: "2010 - 2018",
-        description: "Taught middle school mathematics and served as department chair.",
-      },
-    ],
-    publications: [
-      {
-        title: "Transforming School Leadership: A Framework for Equity and Excellence",
-        journal: "Journal of Educational Leadership",
-        year: "2024",
-      },
-      {
-        title: "Policy Implementation in Urban Schools: Challenges and Opportunities",
-        journal: "Education Policy Review",
-        year: "2023",
-      },
-    ],
+// same Profile type as in [slug] page
+type Profile = {
+  full_name:       string
+  graduation_year: number
+  title:           string
+  employer:        string
+  location:        string
+  linkedin_url:    string | null
+  website_url:     string | null
+  resume_url:      string
+  about:           string
+  slug:            string
+  photo_url:       string
+  id:              string                                // ✅ EDIT: include id for fetching by author
+}
+
+type Article = {                                         // ✅ EDIT: add Article type
+  id:          string
+  title:       string
+  author_name: string
+  date:        string
+  image_url:   string
+  excerpt:     string
+}
+
+export default async function ProfileByIdPage({
+  params,
+}: {
+  params: { id: string }                               // ✅ EDIT: use `id` here
+}) {
+  const { id } = params                                 // ✅ EDIT: destructure `id` instead of `slug`
+
+  // fetch by primary-key `id` rather than slug
+  const { data: pdata, error: perror } = await supabaseAdmin
+    .from("profiles")
+    .select("*")
+    .eq("id", id)
+    .single()
+  if (perror || !pdata) {
+    return notFound()
   }
+  const profile = pdata as Profile
+
+  const cohort = `Class of ${profile.graduation_year}`
+
+  // fetch articles by this author
+  const { data: adata, error: aerr } = await supabaseAdmin
+    .from("articles")
+    .select("id, title, author_name, date, image_url, excerpt")
+    .eq("author_id", profile.id)                     // ✅ EDIT: fetch by author_id
+    .order("date", { ascending: false })
+  const articles = (adata || []) as Article[]          // ✅ EDIT: cast to Article[]
 
   return (
-    <div className="container py-10">
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="flex flex-col items-center">
-            <div className="relative h-60 w-60 overflow-hidden rounded-full border-4 border-harvard-crimson">
-              <Image
-                src={`/placeholder.svg?height=240&width=240&text=${profile.name}`}
-                alt={profile.name}
-                fill
-                className="object-cover"
-              />
+    <div className="relative">
+      {/* watermark layer */}
+      <div
+        className="absolute inset-0 bg-center bg-cover opacity-10 pointer-events-none"
+        style={{ backgroundImage: `url(${profile.photo_url})` }}
+      />
+
+      <div className="relative z-10 container py-10 space-y-10">
+        <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <div className="flex flex-col items-center">
+              <div className="relative h-60 w-60 overflow-hidden rounded-full border-4 border-harvard-crimson">
+                <Image
+                  src={profile.photo_url}
+                  alt={profile.full_name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <h1 className="mt-4 font-serif text-2xl font-bold">
+                {profile.full_name}
+              </h1>
+              <p className="text-muted-foreground">{cohort}</p>
+              <p className="text-center font-medium">{profile.title}</p>
+              <p className="text-center text-sm text-muted-foreground">
+                {profile.employer}
+              </p>
             </div>
-            <h1 className="mt-4 font-serif text-2xl font-bold">{profile.name}</h1>
-            <p className="text-muted-foreground">{profile.cohort}</p>
-            <p className="text-center font-medium">{profile.title}</p>
-            <p className="text-center text-sm text-muted-foreground">{profile.organization}</p>
+
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{profile.location}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{cohort}</span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {profile.linkedin_url && (
+                    <Link
+                      href={profile.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <Linkedin className="h-4 w-4" /> LinkedIn
+                      </Button>
+                    </Link>
+                  )}
+                  {profile.website_url && (
+                    <Link
+                      href={profile.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <Globe className="h-4 w-4" /> Website
+                      </Button>
+                    </Link>
+                  )}
+                  {profile.resume_url && (
+                    <a
+                      href={profile.resume_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <FileText className="h-4 w-4" /> Download Résumé
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{profile.location}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{profile.cohort}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{profile.email}</span>
-              </div>
-              <div className="flex flex-wrap gap-2 pt-2">
-                {profile.linkedin && (
-                  <Link href={profile.linkedin} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="sm" className="gap-1">
-                      <Linkedin className="h-4 w-4" /> LinkedIn
-                    </Button>
-                  </Link>
-                )}
-                {profile.website && (
-                  <Link href={profile.website} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="sm" className="gap-1">
-                      <Globe className="h-4 w-4" /> Website
-                    </Button>
-                  </Link>
-                )}
-                {profile.resume_url && (
-                  <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="sm" className="gap-1">
-                      <FileText className="h-4 w-4" /> Download Résumé
-                    </Button>
-                  </a>
-                )}                
-              </div>
-            </CardContent>
-          </Card>
+          {/* Main Content */}
+          <div className="space-y-8">
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="font-serif text-2xl font-bold mb-4">About</h2>
+                <p className="text-muted-foreground">{profile.about}</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-serif text-lg font-medium mb-2">Interests</h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.interests.map((interest, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-harvard-crimson text-white"
+            {/* Published Articles */}
+            <section className="space-y-6">
+              <h2 className="font-serif text-3xl font-bold tracking-tighter text-gray-900">
+                VERIVOX Articles
+              </h2>
+
+              {articles.length === 0 ? (
+                <p className="text-gray-500">No articles published yet.</p>
+              ) : (
+                articles.map((a) => (
+                  <Link
+                    href={`/articles/${a.id}`}                 // ✅ EDIT: wrap each Card in Link
+                    key={a.id}
                   >
-                    {interest}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <div className="space-y-8">
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="font-serif text-2xl font-bold mb-4">About</h2>
-              <p className="text-muted-foreground">{profile.bio}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="font-serif text-2xl font-bold mb-4">Education</h2>
-              <div className="space-y-4">
-                {profile.education.map((edu, i) => (
-                  <div key={i} className="border-b pb-4 last:border-0 last:pb-0">
-                    <h3 className="font-medium">{edu.degree}</h3>
-                    <p className="text-sm text-muted-foreground">{edu.institution}</p>
-                    <p className="text-sm text-muted-foreground">{edu.year}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="font-serif text-2xl font-bold mb-4">Experience</h2>
-              <div className="space-y-4">
-                {profile.experience.map((exp, i) => (
-                  <div key={i} className="border-b pb-4 last:border-0 last:pb-0">
-                    <h3 className="font-medium">{exp.title}</h3>
-                    <p className="text-sm text-muted-foreground">{exp.organization}</p>
-                    <p className="text-sm text-muted-foreground">{exp.period}</p>
-                    <p className="mt-1">{exp.description}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="font-serif text-2xl font-bold mb-4">Publications</h2>
-              <div className="space-y-4">
-                {profile.publications.map((pub, i) => (
-                  <div key={i} className="flex items-start gap-4 border-b pb-4 last:border-0 last:pb-0">
-                    <FileText className="h-5 w-5 text-harvard-crimson mt-1" />
-                    <div>
-                      <h3 className="font-medium">{pub.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {pub.journal}, {pub.year}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-center">
-            <Link href="/profiles">
-              <Button variant="outline">Back to Profiles</Button>
-            </Link>
+                    <Card className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
+                      <div className="w-full overflow-hidden">
+                        <Image
+                          src={a.image_url}
+                          alt={a.title}
+                          width={800}
+                          height={200}
+                          className="w-full object-cover"
+                          style={{ height: 200 }}       // ✅ EDIT: banner half-height
+                        />
+                      </div>
+                      <CardContent className="p-6">
+                        <h3 className="font-serif text-xl font-bold text-gray-900">
+                          {a.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-2">
+                          {format(new Date(a.date), "MMMM d, yyyy")}
+                        </p>
+                        <p className="text-gray-600">{a.excerpt}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+              )}
+            </section>
           </div>
         </div>
       </div>

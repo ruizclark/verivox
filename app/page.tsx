@@ -279,13 +279,6 @@ export default async function Home() {                // ✅ EDIT: made async to
         </div>
       </section>
 
-      {/* Account Section - dynamic Log in / Log out */}
-      <section className="py-8 bg-white">                  {/* ✅ EDIT: added Account section */}
-        <div className="container px-4 md:px-6">
-          <h3 className="font-serif text-lg font-bold mb-2">Account</h3>
-          <AccountLink />                                  {/* ✅ EDIT: dynamic login/logout link */}
-        </div>
-      </section>
     </div>
   )
 }

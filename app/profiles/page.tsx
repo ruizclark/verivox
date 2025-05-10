@@ -34,15 +34,16 @@ export default async function ProfilesPage({ searchParams }: Props) {
   const from       = (pageNumber - 1) * pageSize
   const to         = pageNumber * pageSize - 1
 
-  // fetch distinct cohort years
-  const { data: cohortData } = await supabaseAdmin
+  // ✅ EDIT: fetch all graduation_year then dedupe in JS
+  const { data: rawCohorts } = await supabaseAdmin
     .from("profiles")
-    .select("graduation_year", { distinct: true })
+    .select("graduation_year")
     .eq("approved", true)
     .order("graduation_year", { ascending: false })
 
-  const cohorts = (cohortData as { graduation_year: number }[] | null)
-    ? cohortData.map((r) => r.graduation_year)
+  // ✅ EDIT: dedupe years via Set, add explicit type
+  const cohorts: number[] = rawCohorts
+    ? Array.from(new Set(rawCohorts.map((r: { graduation_year: number }) => r.graduation_year)))
     : []
 
   // build base query with count
@@ -109,14 +110,13 @@ export default async function ProfilesPage({ searchParams }: Props) {
             className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
           >
             <option value="">All Cohorts</option>
-            {/* ✅ EDIT: label changed from "Class of" to "Graduated" */}
-            {cohorts.map((yr) => (
+            {/* ✅ EDIT: explicit type on yr */}
+            {cohorts.map((yr: number) => (
               <option key={yr} value={yr}>
-                Graduated {yr}
+                Class of {yr}
               </option>
             ))}
           </select>
-          {/* Interests dropdown removed */}
         </div>
       </div>
 
@@ -142,9 +142,8 @@ export default async function ProfilesPage({ searchParams }: Props) {
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-serif text-lg font-bold">{p.full_name}</h3>
-                    {/* ✅ EDIT: label changed from "Class of" to "Graduated" */}
                     <p className="text-sm text-muted-foreground">
-                      Graduated {p.graduation_year}
+                      Class of {p.graduation_year}
                     </p>
                     <p className="mt-2 line-clamp-3 text-sm">
                       {p.title} at {p.employer}
