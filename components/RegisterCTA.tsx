@@ -12,7 +12,7 @@ export default function RegisterCTA() {
     <Link href={href}>
       {/* ✅ KEEPING the exact red styling you had before */}
       <Button variant="outline" className="gap-1 border-gray-300 text-gray-700 hover:bg-gray-50">
-        My Profile
+        Build My Profile
       </Button>
     </Link>
   )

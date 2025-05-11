@@ -29,17 +29,13 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* ✅ NEW: Clarification paragraph */}
-          <p className="text-sm text-gray-600 mb-6">
-            VERIVOX is a student-led initiative, operating independently of the Harvard Graduate School of
-            Education (HGSE). As a volunteer-run platform, VERIVOX does not receive financial support, sponsorship,
-            or official endorsement from Harvard University. The views and ideas expressed on the platform are solely
-            those of our members, and do not necessarily reflect the opinions of VERIVOX’s founders or of HGSE.
-          </p>
-
           <p>
             VERIVOX was launched in 2025 as a space to amplify the voices of current and former candidates of the
-            Doctoral program in Education Leadership at the Harvard Graduate School of Education (HGSE).
+            Doctoral program in Education Leadership (EdLD) at the Harvard Graduate School of Education (HGSE). 
+            VERIVOX is a student-led initiative, operating independently of HGSE. As a volunteer-run platform, VERIVOX 
+            does not receive financial support, sponsorship, or official endorsement from Harvard University. 
+            The views expressed on the platform are solely those of our members, and do not necessarily reflect 
+            the opinions of VERIVOX’s founders or of HGSE.
           </p>
         </section>
 
@@ -47,7 +43,7 @@ export default function AboutPage() {
         <section>
           <h2 className="font-serif text-2xl font-bold mb-4">Our Mission</h2>
           <p className="mb-6">
-            Our mission is to create a platform where EdLD students and alumni can share their research, insights, and
+            Our mission is to create a platform where EdLD students and alumni can share their insights and
             experiences with each other and the broader education community. We believe that by amplifying these voices,
             we can contribute to meaningful change as a community.
           </p>
