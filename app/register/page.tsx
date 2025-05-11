@@ -1,3 +1,5 @@
+// app/register/page.tsx
+
 "use client"
 
 import React, { useState, useEffect } from "react"
@@ -49,10 +51,10 @@ export default function RegisterPage() {
     e.preventDefault()
     setErrorMsg("")
 
-    // EDIT: require photo upload
-    if (!photoUrl) {
-      return setErrorMsg("Please upload a profile photo.")
-    }
+    // EDIT: profile photo is now optional, so remove requirement
+    // if (!photoUrl) {
+    //   return setErrorMsg("Please upload a profile photo.")
+    // }
 
     if (!userId)                return setErrorMsg("Not signed in.")
     if (!fullName.trim())       return setErrorMsg("Full name is required.")
@@ -63,7 +65,7 @@ export default function RegisterPage() {
     if (!resumeUrl)             return setErrorMsg("Please upload your résumé.")
     if (!about.trim())          return setErrorMsg("Please share something about yourself.")
 
-    // EDIT: generate slug
+    // generate slug
     const slug = fullName
       .trim()
       .toLowerCase()
@@ -78,7 +80,7 @@ export default function RegisterPage() {
       body: JSON.stringify({
         full_name:       fullName,
         slug,                    // existing: include slug
-        photo_url:       photoUrl,  // EDIT: include photo_url
+        photo_url:       photoUrl || "",  // EDIT: send empty string if no photo
         graduation_year: parseInt(graduationYear, 10),
         title,
         employer,
@@ -211,7 +213,7 @@ export default function RegisterPage() {
           <ResumeUpload userId={userId} onUploadSuccess={setResumeUrl} />
           {resumeUrl && (
             <p className="text-green-600 text-sm">
-              Résumé ready!{" "}
+              Résumé ready!{' '}
               <a
                 href={resumeUrl}
                 target="_blank"
@@ -224,9 +226,10 @@ export default function RegisterPage() {
           )}
         </div>
 
-        {/* Photo Upload */}
+        {/* Photo Upload (optional) */}
         <div>
-          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  {/* EDIT: insert PhotoUpload */}
+          <label className="block text-sm font-medium mb-1">Upload Photo (optional)</label> {/* EDIT: optional label */}
+          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  {/* NEW: insert PhotoUpload */}
           {photoUrl && (
             <img
               src={photoUrl}

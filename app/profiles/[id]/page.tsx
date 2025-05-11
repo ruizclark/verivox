@@ -1,4 +1,4 @@
-// app/[id]/page.tsx
+// File: app/profiles/[id]/page.tsx
 
 import React from "react"
 import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Linkedin, Globe, FileText, MapPin, Calendar } from "lucide-react"
 import { format } from "date-fns"                     // ✅ EDIT: import date formatter
 
-// same Profile type as in [slug] page
+// Profile type
 type Profile = {
   full_name:       string
   graduation_year: number
@@ -25,10 +25,11 @@ type Profile = {
   about:           string
   slug:            string
   photo_url:       string
-  id:              string                                // ✅ EDIT: include id for fetching by author
+  id:              string
 }
 
-type Article = {                                         // ✅ EDIT: add Article type
+// Article type
+type Article = {
   id:          string
   title:       string
   author_name: string
@@ -40,11 +41,11 @@ type Article = {                                         // ✅ EDIT: add Articl
 export default async function ProfileByIdPage({
   params,
 }: {
-  params: { id: string }                               // ✅ EDIT: use `id` here
+  params: { id: string }
 }) {
-  const { id } = params                                 // ✅ EDIT: destructure `id` instead of `slug`
+  const { id } = params
 
-  // fetch by primary-key `id` rather than slug
+  // fetch by primary-key `id`
   const { data: pdata, error: perror } = await supabaseAdmin
     .from("profiles")
     .select("*")
@@ -61,17 +62,13 @@ export default async function ProfileByIdPage({
   const { data: adata, error: aerr } = await supabaseAdmin
     .from("articles")
     .select("id, title, author_name, date, image_url, excerpt")
-    .eq("author_id", profile.id)                     // ✅ EDIT: fetch by author_id
+    .eq("author_id", profile.id)
     .order("date", { ascending: false })
-  const articles = (adata || []) as Article[]          // ✅ EDIT: cast to Article[]
+  const articles = (adata || []) as Article[]
 
   return (
     <div className="relative">
-      {/* watermark layer */}
-      <div
-        className="absolute inset-0 bg-center bg-cover opacity-10 pointer-events-none"
-        style={{ backgroundImage: `url(${profile.photo_url})` }}
-      />
+      {/* EDIT: removed watermark overlay for transparent background */}
 
       <div className="relative z-10 container py-10 space-y-10">
         <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
@@ -79,8 +76,9 @@ export default async function ProfileByIdPage({
           <div className="space-y-6">
             <div className="flex flex-col items-center">
               <div className="relative h-60 w-60 overflow-hidden rounded-full border-4 border-harvard-crimson">
+                {/* EDIT: show placeholder if no photo_url */}
                 <Image
-                  src={profile.photo_url}
+                  src={profile.photo_url || "/images/placeholder.png"}
                   alt={profile.full_name}
                   fill
                   className="object-cover"
@@ -106,7 +104,6 @@ export default async function ProfileByIdPage({
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{cohort}</span>
                 </div>
-
                 <div className="flex flex-wrap gap-2 pt-2">
                   {profile.linkedin_url && (
                     <Link
@@ -166,10 +163,11 @@ export default async function ProfileByIdPage({
               ) : (
                 articles.map((a) => (
                   <Link
-                    href={`/articles/${a.id}`}                 // ✅ EDIT: wrap each Card in Link
+                    href={`/articles/${a.id}`}                  // ✅ EDIT: wrap each Card in Link to its article
                     key={a.id}
                   >
                     <Card className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
+                      {/* Banner image — full width, half-height */}
                       <div className="w-full overflow-hidden">
                         <Image
                           src={a.image_url}
@@ -177,7 +175,7 @@ export default async function ProfileByIdPage({
                           width={800}
                           height={200}
                           className="w-full object-cover"
-                          style={{ height: 200 }}       // ✅ EDIT: banner half-height
+                          style={{ height: 200 }}
                         />
                       </div>
                       <CardContent className="p-6">

@@ -1,8 +1,9 @@
 // app/about/page.tsx
 
 import Image from "next/image"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
+// ✅ EDIT: import the client component that chooses /signup vs /register
+import RegisterCTA from "@/components/RegisterCTA"
 
 export default function AboutPage() {
   return (
@@ -28,18 +29,13 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* ✅ NEW: Clarification paragraph */}
-          <p className="text-sm text-gray-600 mb-6">
-            
-          </p>
-
           <p>
-            VERIVOX was launched in 2025 as a space to amplify the voices of the EdLD community. To join the platform,
-            members must current students or alumni of the Doctor of Education Leadership (EdLD) program at the Harvard
-            Graduate School of Education (HGSE). VERIVOX is a student-led initiative, operating independently of HGSE. 
-            As a volunteer-run platform, VERIVOX does not receive financial support, sponsorship, or official endorsement 
-            from Harvard University. The views and ideas expressed on the platform are solely those of our members, and do 
-            not necessarily reflect the opinions of VERIVOX’s founders or of HGSE.
+            VERIVOX was launched in 2025 as a space to amplify the voices of current and former candidates of the
+            Doctoral program in Education Leadership (EdLD) at the Harvard Graduate School of Education (HGSE). 
+            VERIVOX is a student-led initiative, operating independently of HGSE. As a volunteer-run platform, VERIVOX 
+            does not receive financial support, sponsorship, or official endorsement from Harvard University. 
+            The views expressed on the platform are solely those of our members, and do not necessarily reflect 
+            the opinions of VERIVOX’s founders or of HGSE.
           </p>
         </section>
 
@@ -47,7 +43,7 @@ export default function AboutPage() {
         <section>
           <h2 className="font-serif text-2xl font-bold mb-4">Our Mission</h2>
           <p className="mb-6">
-            Our mission is to create a platform where EdLD students and alumni can share their research, insights, and
+            Our mission is to create a platform where EdLD students and alumni can share their insights and
             experiences with each other and the broader education community. We believe that by amplifying these voices,
             we can contribute to meaningful change as a community.
           </p>
@@ -83,12 +79,8 @@ export default function AboutPage() {
             <li>Stay informed about the work and achievements of your fellow EdLD community members</li>
           </ul>
           <div className="flex justify-center">
-            {/* ✅ UPDATED: now links to /signup */}
-            <Link href="/signup">
-              <Button size="lg" className="bg-harvard-crimson hover:bg-harvard-crimson/90">
-                Register Now
-              </Button>
-            </Link>
+            {/* ✅ UPDATED: use the RegisterCTA which handles signup vs register */}
+            <RegisterCTA />
           </div>
         </section>
 
@@ -96,9 +88,9 @@ export default function AboutPage() {
         <section>
           <h2 className="font-serif text-2xl font-bold mb-4">Contact Us</h2>
           <p>
-            If you have any questions or feedback about VERIVOX, please don't hesitate to contact us at{' '}
-            <a href="mailto:info@verivox.org" className="text-harvard-crimson hover:underline">
-              info@verivox.org
+            If you have any questions or feedback about VERIVOX, please don't hesitate to contact us at{" "}
+            <a href="mailto:ruizclark@gse.harvard.edu" className="text-harvard-crimson hover:underline">
+              ruizclark@gse.harvard.edu
             </a>.
           </p>
         </section>
