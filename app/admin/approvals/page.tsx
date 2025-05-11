@@ -1,4 +1,4 @@
-// app/admin/approvals/page.tsx
+// File: app/admin/approvals/page.tsx
 
 import React from "react"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
@@ -6,6 +6,7 @@ import { cookies } from "next/headers"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import ApproveButton from "@/components/ApproveButton"  // <- client-only
 
+// Define minimal types
 type Profile = {
   id: string
   full_name: string
@@ -16,26 +17,40 @@ export default async function AdminApprovalsPage() {
   const cookieStore = cookies()
 
   // ── 2) Pass a function that returns that same store ──
-  const authClient = createRouteHandlerClient({
-    cookies: () => cookieStore,
-  })
+  const authClient = createRouteHandlerClient({ cookies: () => cookieStore })
 
+  // get session
   const {
     data: { session },
   } = await authClient.auth.getSession()
 
-  if (!session?.user || !session.user.user_metadata?.is_admin) {
-    // Non-admin or not signed in
+  if (!session?.user) {
+    // not signed in
     return <p>You must be signed in as an admin to view this page.</p>
   }
 
+  // EDIT: verify admin flag from profiles table instead of user_metadata
+  const { data: profileData, error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", session.user.id)
+    .single()
+
+  if (profileError || !profileData?.is_admin) {
+    // not an admin
+    return <p>You must be signed in as an admin to view this page.</p>
+  }
+
+  // fetch pending approvals
   const { data, error } = await supabaseAdmin
     .from("profiles")
     .select("id, full_name")
     .eq("approved", false)
 
   if (error) {
-    return <p className="text-red-500">Error loading profiles: {error.message}</p>
+    return (
+      <p className="text-red-500">Error loading profiles: {error.message}</p>
+    )
   }
 
   const profiles = (data as Profile[]) || []

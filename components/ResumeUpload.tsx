@@ -72,9 +72,6 @@ export default function ResumeUpload({
         onChange={handleFileChange}
         disabled={uploading}
       />
-      <Button type="button" disabled={uploading}>
-        {uploading ? "Uploading..." : "Upload PDF"}
-      </Button>
       {message && <p className="text-sm text-muted-foreground">{message}</p>}
     </div>
   )

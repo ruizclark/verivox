@@ -228,7 +228,6 @@ export default function RegisterPage() {
 
         {/* Photo Upload (optional) */}
         <div>
-          <label className="block text-sm font-medium mb-1">Upload Photo (optional)</label> {/* EDIT: optional label */}
           <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  {/* NEW: insert PhotoUpload */}
           {photoUrl && (
             <img
