@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, BookOpen, Users, FileText } from "lucide-react"
 import { supabaseAdmin } from "@/lib/supabase/admin"   // ✅ EDIT: import supabaseAdmin
 import { format } from "date-fns"                     // ✅ EDIT: import date formatter
+import RegisterCTA from "@/components/RegisterCTA"
 import AccountLink from "@/components/AccountLink"    // ✅ EDIT: import AccountLink for dynamic login/logout
 
 export default async function Home() {                // ✅ EDIT: made async to fetch data
@@ -254,7 +255,7 @@ export default async function Home() {                // ✅ EDIT: made async to
         </div>
       </section>
 
-      {/* CTA Section - Updated with clean design */}
+      {/* CTA Section - Updated with dynamic Register button */}
       <section className="bg-harvard-crimson py-16 md:py-24">
         <div className="container px-4 md:px-6 text-white">
           <div className="flex flex-col items-center justify-center space-y-6 text-center">
@@ -266,15 +267,8 @@ export default async function Home() {                // ✅ EDIT: made async to
                 If you are a current or former EdLD candidate, register to connect with fellow members, share your work, and amplify your voice.
               </p>
             </div>
-            <Link href="/register">
-              <Button
-                size="lg"
-                variant="outline"
-                className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Register Now
-              </Button>
-            </Link>
+            {/* ✅ EDIT: replaced static Link with RegisterCTA client component */}
+            <RegisterCTA />
           </div>
         </div>
       </section>
