@@ -1,3 +1,5 @@
+// components/PhotoUpload.tsx
+
 "use client"
 
 import React, { useState } from "react"
@@ -24,6 +26,9 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
     setError(null)
     const file = e.target.files?.[0]
     if (!file) return
+
+    // 🐞 LOG: confirm authenticated user ID (Auth UID)
+    console.log("🐞 LOG: Auth UID:", userId)
 
     // EDIT: reject by file size
     if (file.size > MAX_FILE_SIZE) {
@@ -52,10 +57,23 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
       const fileName = `${userId}.${ext}`
       const filePath = `${userId}/${fileName}`
 
+      // 🐞 LOG: confirm upload path
+      console.log("🐞 LOG: Upload Path:", filePath)
+      console.log("🐞 LOG: Auth UID (reconfirm):", userId)
+
+      // 🐞 LOG: about to call upload
+      console.log("📤 PhotoUpload: uploading to", filePath)
       const { error: uploadError } = await supabase
         .storage
         .from("photos")
         .upload(filePath, file, { upsert: true })
+
+      // 🐞 LOG: full error object
+      console.log("📤 PhotoUpload: uploadError object:", uploadError)
+      // 🐞 LOG: error message
+      console.log("📤 PhotoUpload: uploadError.message:", uploadError?.message)
+      // 🐞 LOG: inspect all keys
+      console.log("📤 PhotoUpload: uploadError keys:", uploadError && Object.keys(uploadError))
 
       if (uploadError) {
         setError(uploadError.message)
@@ -63,12 +81,23 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
         return
       }
 
-      const { data } = supabase
+      // 🐞 LOG: upload succeeded
+      console.log("📤 PhotoUpload: upload successful, now creating signed URL")
+      const { data, error: urlError } = await supabase
         .storage
         .from("photos")
-        .getPublicUrl(filePath)
+        .createSignedUrl(filePath, 60)  // URL valid for 60 seconds
 
-      onUploadSuccess(data.publicUrl)
+      // 🐞 LOG: signed URL result
+      console.log("📤 PhotoUpload: urlError:", urlError)
+      console.log("📤 PhotoUpload: signedUrl:", data?.signedUrl)
+
+      if (urlError) {
+        setError(urlError.message)
+      } else {
+        onUploadSuccess(data.signedUrl)
+      }
+
       setUploading(false)
     }
 

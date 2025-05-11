@@ -1,4 +1,4 @@
-// app/[slug]/page.tsx
+// File: app/[slug]/page.tsx
 
 import React from "react"
 import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
@@ -62,11 +62,7 @@ export default async function SlugProfilePage({
 
   return (
     <div className="relative">
-      {/* watermark */}
-      <div
-        className="absolute inset-0 bg-center bg-cover opacity-10 pointer-events-none"
-        style={{ backgroundImage: `url(${profile.photo_url})` }}
-      />
+      {/* EDIT: removed watermark overlay for transparent background */}
 
       <div className="relative z-10 container py-10 space-y-10">
         <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
@@ -74,8 +70,9 @@ export default async function SlugProfilePage({
           <div className="space-y-6">
             <div className="flex flex-col items-center">
               <div className="relative h-60 w-60 overflow-hidden rounded-full border-4 border-harvard-crimson">
+                {/* EDIT: show placeholder if no photo */}
                 <Image
-                  src={profile.photo_url}
+                  src={profile.photo_url || "/images/placeholder.png"}
                   alt={profile.full_name}
                   fill
                   className="object-cover"

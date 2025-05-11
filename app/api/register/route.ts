@@ -13,6 +13,10 @@ export async function POST(req: Request) {
     error: sessionError,
   } = await authClient.auth.getSession()
 
+  // 🐞 LOG: session & sessionError for debugging
+  console.log("🔌 /api/register: session", session)
+  console.log("🔌 /api/register: sessionError", sessionError)
+
   const user = session?.user
   if (sessionError || !user) {
     return NextResponse.json(
@@ -23,6 +27,10 @@ export async function POST(req: Request) {
 
   try {
     // 2️⃣ Pull every field sent from the frontend (including slug & photo_url)
+    const body = await req.json()
+    // 🐞 LOG: incoming request body
+    console.log("🔌 /api/register: received body", body)
+
     const {
       full_name,
       slug,             // ⬅️ existing: slug from front end
@@ -36,7 +44,7 @@ export async function POST(req: Request) {
       resume_url,
       about,
       approved,
-    } = await req.json()
+    } = body
 
     // 3️⃣ Upsert the complete object, no missing NOT NULL columns
     const { error: upsertError } = await supabaseAdmin
@@ -61,6 +69,9 @@ export async function POST(req: Request) {
         ],
         { onConflict: "id" }
       )
+
+    // 🐞 LOG: upsert result
+    console.log("🔌 /api/register: upsertError", upsertError)
 
     if (upsertError) {
       console.error("🛑 Profile upsert failed:", upsertError)

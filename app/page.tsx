@@ -167,9 +167,10 @@ export default async function Home() {                // ✅ EDIT: made async to
             {featuredProfiles?.map((p) => (
               <Link href={`/${p.slug}`} key={p.id}>
                 <Card className="overflow-hidden transition-all hover:shadow-lg border border-gray-200">
-                  <div className="aspect-square overflow-hidden">
+                <div className="aspect-square overflow-hidden">
+                    {/* EDIT: fallback to placeholder if no photo */}
                     <Image
-                      src={p.photo_url}
+                      src={p.photo_url || "/images/placeholder.png"}
                       alt={p.full_name}
                       width={300}
                       height={300}
