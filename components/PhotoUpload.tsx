@@ -110,7 +110,7 @@ export default function PhotoUpload({ userId, onUploadSuccess }: PhotoUploadProp
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">Upload Photo</label>
+      <label className="block text-sm font-medium mb-1">Upload Photo (Coming Soon -- Not Yet Functional)</label>
       <input
         type="file"
         accept="image/*"
