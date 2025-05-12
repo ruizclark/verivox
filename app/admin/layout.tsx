@@ -1,5 +1,6 @@
 // app/admin/layout.tsx
 
+// This is the layout for the admin dashboard
 export default function AdminLayout({
     children,
   }: {

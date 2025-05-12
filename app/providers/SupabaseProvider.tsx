@@ -1,5 +1,6 @@
 "use client"
 
+// This file is used to create a Supabase client and provide it to the app
 import { ReactNode, useState, useEffect } from "react"
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
 import {
@@ -7,6 +8,7 @@ import {
   type Session
 } from "@supabase/auth-helpers-react"
 
+// 1) Create a Supabase client
 export default function SupabaseProvider({ children }: { children: ReactNode }) {
   // 1) Create exactly one browser client
   const [supabase] = useState(() => createPagesBrowserClient())

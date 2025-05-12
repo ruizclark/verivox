@@ -1,22 +1,22 @@
 // app/api/register/route.ts
 
+// Import the necessary modules and types
 import { NextResponse } from "next/server"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 
+// This function handles the POST request to register a user profile
 export async function POST(req: Request) {
-  // 1️⃣ Read the user’s session from the cookie:
+  // Read the user’s session from the cookie:
   const authClient = createRouteHandlerClient({ cookies })
+  // Get the session from the request
   const {
     data: { session },
     error: sessionError,
   } = await authClient.auth.getSession()
 
-  // 🐞 LOG: session & sessionError for debugging
-  console.log("🔌 /api/register: session", session)
-  console.log("🔌 /api/register: sessionError", sessionError)
-
+  // Check if the session exists and if there is an error
   const user = session?.user
   if (sessionError || !user) {
     return NextResponse.json(
@@ -25,16 +25,16 @@ export async function POST(req: Request) {
     )
   }
 
+  // Check if the user is already registered
   try {
-    // 2️⃣ Pull every field sent from the frontend (including slug & photo_url)
+    // Pull every field sent from the frontend (including slug & photo_url)
     const body = await req.json()
-    // 🐞 LOG: incoming request body
-    console.log("🔌 /api/register: received body", body)
 
+    // Check if the body is empty
     const {
       full_name,
-      slug,             // ⬅️ existing: slug from front end
-      photo_url,        // ⬅️ EDIT: added photo_url here
+      slug,            
+      photo_url,       
       graduation_year,
       title,
       employer,
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       approved,
     } = body
 
-    // 3️⃣ Upsert the complete object, no missing NOT NULL columns
+    // Upsert the complete object, no missing NOT NULL columns
     const { error: upsertError } = await supabaseAdmin
       .from("profiles")
       .upsert(
@@ -54,8 +54,8 @@ export async function POST(req: Request) {
           {
             id:               user.id,
             full_name,
-            slug,           // ⬅️ existing: include slug
-            photo_url,      // ⬅️ EDIT: include photo_url in upsert
+            slug,          
+            photo_url,      
             graduation_year,
             title,
             employer,
@@ -70,21 +70,17 @@ export async function POST(req: Request) {
         { onConflict: "id" }
       )
 
-    // 🐞 LOG: upsert result
-    console.log("🔌 /api/register: upsertError", upsertError)
-
+    // Check if there was an error during the upsert operation
     if (upsertError) {
-      console.error("🛑 Profile upsert failed:", upsertError)
       return NextResponse.json(
         { error: upsertError.message },
         { status: 500 }
       )
     }
 
-    // 4️⃣ All good
+    // Return a success response
     return NextResponse.json({ message: "Profile saved!" }, { status: 200 })
   } catch (err) {
-    console.error("🛑 Unexpected error in /api/register:", err)
     return NextResponse.json(
       { error: "Invalid request body." },
       { status: 400 }

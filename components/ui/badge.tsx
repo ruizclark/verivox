@@ -1,3 +1,5 @@
+// Provided by v0 by Next.js
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

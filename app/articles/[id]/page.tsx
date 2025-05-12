@@ -1,6 +1,7 @@
 // File: app/articles/[id]/page.tsx
 "use client"
 
+// Import { useParams } from "next/navigation"
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSupabaseClient } from "@supabase/auth-helpers-react"
@@ -12,12 +13,14 @@ import { Calendar, User, Share2 } from "lucide-react" // Tag icon removed
 import { format } from "date-fns"
 import { useToast } from "@/components/ui/use-toast"
 
+// Components
 export type RelatedArticle = {
   id: string
   title: string
   image_url: string | null
 }
 
+// Article type
 export type Article = {
   id: string
   title: string
@@ -30,12 +33,14 @@ export type Article = {
   related: RelatedArticle[]
 }
 
+// ArticlePage component
 export default function ArticlePage() {
   const { id } = useParams()!
   const supabase = useSupabaseClient()
   const router = useRouter()
   const { toast } = useToast()
 
+  // const { id } = useParams()
   const [article, setArticle] = useState<Article | null>(null)
   const [authorFullName, setAuthorFullName] = useState<string | null>(null)
   const [authorSlug, setAuthorSlug] = useState<string | null>(null)
@@ -43,10 +48,12 @@ export default function ArticlePage() {
   const [error, setError] = useState<string | null>(null)
   const [imgError, setImgError] = useState(false)
 
+  // const router = useRouter()
   useEffect(() => {
     if (!id) return
     setLoading(true)
 
+    // Fetch article data from Supabase
     supabase
       .from("articles")
       .select(`
@@ -74,7 +81,7 @@ export default function ArticlePage() {
           setError("Article not found.")
           return
         }
-
+        // Check if the article is published
         setArticle({
           ...data,
           image_url: data.image_url?.trim() || null,
@@ -85,6 +92,7 @@ export default function ArticlePage() {
           })),
         })
 
+        // Fetch author profile data
         const { data: profile, error: profErr } = await supabase
           .from("profiles")
           .select("full_name, slug")
@@ -97,9 +105,11 @@ export default function ArticlePage() {
       })
   }, [id, supabase])
 
+  // Handle image error
   if (loading) {
     return <p className="text-center py-10">Loading…</p>
   }
+  // Handle error
   if (error) {
     return (
       <div className="text-center py-10">
@@ -108,18 +118,22 @@ export default function ArticlePage() {
       </div>
     )
   }
+  // Handle article not found
   if (!article) return null
 
+  // Handle article not found
   const displayName = authorFullName || article.author_name
   const formattedDate = format(new Date(article.date), "MMMM d, yyyy")
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
     toast({ title: "Link copied to clipboard!" })
   }
+  // Handle author slug
   const profileHref = authorSlug
     ? `/${authorSlug}`
     : `/profiles/${article.author_id}`
 
+  // Handle article image
   return (
     <div className="container py-10">
       <div className="mx-auto max-w-4xl">
@@ -128,7 +142,7 @@ export default function ArticlePage() {
           ← Back to Articles
         </Link>
 
-        {/* ✅ EDIT: re-insert Edit Article button */}
+        {/* Re-insert Edit Article button */}
         <div className="my-4">
         <Link href={`/articles/${id}/edit`}>
           <Button
@@ -141,8 +155,10 @@ export default function ArticlePage() {
         </Link>
         </div>
 
+        {/* Article title */}
         <h1 className="font-serif text-3xl font-bold mt-4">{article.title}</h1>
 
+        {/* Author and date */} 
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground my-2">
           <User className="h-4 w-4" />
           <Link
@@ -157,6 +173,7 @@ export default function ArticlePage() {
           <span className="ml-4">{article.category}</span>
         </div>
 
+        {/* Article image */}
         <div className="mb-8 mx-auto w-full max-w-4xl h-64 relative overflow-hidden rounded-lg">
           {!imgError && article.image_url ? (
             <Image
@@ -168,6 +185,7 @@ export default function ArticlePage() {
               onError={() => setImgError(true)}
             />
           ) : (
+            // Fallback image if article image fails to load
             <Image
               src="/images/verivox-banner.png"
               alt="VERIVOX Banner"
@@ -178,11 +196,13 @@ export default function ArticlePage() {
           )}
         </div>
 
+        {/* Article content */}
         <div
           className="prose prose-lg max-w-none"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
+        {/* Share and author profile buttons */}
         <div className="my-8 flex items-center justify-between border-t border-b py-4">
           <div className="flex items-center gap-2">
             <span className="font-medium">Share this article:</span>
@@ -196,6 +216,7 @@ export default function ArticlePage() {
               <span className="sr-only">Share</span>
             </Button>
           </div>
+          {/* Author profile button */}
           <Link href={profileHref}>
             <Button variant="outline" size="sm">
               View Author Profile
@@ -203,13 +224,18 @@ export default function ArticlePage() {
           </Link>
         </div>
 
+        {/* Related articles */}
         {article.related.length > 0 && (
           <div className="my-12">
             <h2 className="font-serif text-2xl font-bold mb-6">Related Articles</h2>
             <div className="grid gap-6 sm:grid-cols-2">
+              {/* Map through related articles and display them */}
               {article.related.map((rel) => (
+                // Check if related article has an image
                 <Link href={`/articles/${rel.id}`} key={rel.id}>
+                  {/* Card component for each related article */}
                   <Card className="overflow-hidden hover:shadow-lg transition">
+                    {/* Image for related article */}
                     {rel.image_url && (
                       <div className="aspect-video overflow-hidden">
                         <Image
@@ -221,6 +247,7 @@ export default function ArticlePage() {
                         />
                       </div>
                     )}
+                    {/* Card content */}
                     <CardContent className="p-4">
                       <h3 className="font-serif text-lg font-bold">{rel.title}</h3>
                     </CardContent>

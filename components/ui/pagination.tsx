@@ -1,3 +1,5 @@
+// Provided by v0 by Next.js
+
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 

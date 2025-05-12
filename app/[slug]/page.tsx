@@ -1,7 +1,8 @@
 // File: app/[slug]/page.tsx
 
+// This is a Next.js page component that displays a user's profile and their published articles.
 import React from "react"
-import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
+import Link from "next/link"                              
 import Image from "next/image"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { notFound } from "next/navigation"
@@ -10,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Linkedin, Globe, FileText, MapPin, Calendar } from "lucide-react"
 import { format } from "date-fns"
 
+// Types for the profile and article data
 type Profile = {
   full_name:       string
   graduation_year: number
@@ -25,6 +27,7 @@ type Profile = {
   id:              string
 }
 
+// Type for the article data
 type Article = {
   id:          string
   title:       string
@@ -34,6 +37,7 @@ type Article = {
   excerpt:     string
 }
 
+// This function fetches the profile and articles data based on the slug parameter
 export default async function SlugProfilePage({
   params,
 }: {
@@ -58,12 +62,14 @@ export default async function SlugProfilePage({
     .order("date", { ascending: false })
   const articles = (adata || []) as Article[]
 
+  // if no articles, show a message
   const cohort = `Class of ${profile.graduation_year}`
 
+  // if (aerr) {
+  //   console.error("Error fetching articles:", aerr)
   return (
     <div className="relative">
-      {/* EDIT: removed watermark overlay for transparent background */}
-
+      {/* Background image */}
       <div className="relative z-10 container py-10 space-y-10">
         <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
           {/* sidebar */}
@@ -87,17 +93,19 @@ export default async function SlugProfilePage({
                 {profile.employer}
               </p>
             </div>
-
+            {/* Contact info */}
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{profile.location}</span>
                 </div>
+                {/* EDIT: show placeholder if no graduation year */}
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{cohort}</span>
                 </div>
+                {/* EDIT: show placeholder if no employer */}
                 <div className="flex flex-wrap gap-2 pt-2">
                   {profile.linkedin_url && (
                     <Link href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
@@ -106,6 +114,9 @@ export default async function SlugProfilePage({
                       </Button>
                     </Link>
                   )}
+                  {/* EDIT: show placeholder if no website */}
+                  {/* EDIT: show placeholder if no résumé */}
+                  {/* EDIT: show placeholder if no LinkedIn */}
                   {profile.website_url && (
                     <Link href={profile.website_url} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="gap-1">
@@ -113,6 +124,7 @@ export default async function SlugProfilePage({
                       </Button>
                     </Link>
                   )}
+                  {/* EDIT: show placeholder if no résumé */}
                   {profile.resume_url && (
                     <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="gap-1">
@@ -140,6 +152,7 @@ export default async function SlugProfilePage({
                 VERIVOX Articles
               </h2>
 
+              {/* EDIT: show placeholder if no articles */}
               {articles.length === 0 ? (
                 <p className="text-gray-500">No articles published yet.</p>
               ) : (
@@ -148,6 +161,7 @@ export default async function SlugProfilePage({
                     href={`/articles/${a.id}`}                 // ✅ EDIT: wrap each Card in Link to its article
                     key={a.id}
                   >
+                    {/* Card for each article */}
                     <Card className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
                       {/* Banner image — full width, half-height */}
                       <div className="w-full overflow-hidden">
@@ -160,13 +174,16 @@ export default async function SlugProfilePage({
                           style={{ height: 200 }}
                         />
                       </div>
+                      {/* Card content */}
                       <CardContent className="p-6">
                         <h3 className="font-serif text-xl font-bold text-gray-900">
                           {a.title}
                         </h3>
+                        {/* EDIT: show placeholder if no author name */}
                         <p className="text-sm text-gray-500 mb-2">
                           {format(new Date(a.date), "MMMM d, yyyy")}
                         </p>
+                        {/* EDIT: show placeholder if no excerpt */}
                         <p className="text-gray-600">{a.excerpt}</p>
                       </CardContent>
                     </Card>

@@ -1,37 +1,43 @@
 // components/ResumeUpload.tsx
 
+// This component allows users to upload their resumes to Supabase Storage.
 "use client"
 
+// Use the shared Supabase client
 import React, { useState } from "react"
-// — use the shared Supabase client
 import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+// Interface Props 
 interface ResumeUploadProps {
   userId: string
   onUploadSuccess?: (url: string) => void
 }
 
+// Export the ResumeUpload component
 export default function ResumeUpload({
   userId,
   onUploadSuccess,
 }: ResumeUploadProps) {
+  // Use the shared Supabase client
   const supabase = useSupabaseClient()  // shared instance
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState("")
 
+  // Handle file change event
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Check if the file is a PDF
     setUploading(true)
     setMessage("")
 
     // Build a unique path for the file
     const path = `${userId}/${Date.now()}-${file.name}`
 
-    // 1️⃣ Upload the file
+    // 1Upload the file
     const { error: uploadError } = await supabase.storage
       .from("resumes")
       .upload(path, file, {
@@ -39,24 +45,24 @@ export default function ResumeUpload({
         contentType: file.type,
       })
 
+    // Handle upload error
     if (uploadError) {
-      console.error("❌ Upload failed:", uploadError.message)
+      console.error("Upload failed:", uploadError.message)
       setMessage("Upload failed: " + uploadError.message)
       setUploading(false)
       return
     }
 
-    // 2️⃣ Retrieve the public URL
-    // — getPublicUrl returns only `{ data: { publicUrl: string } }`
+    // Retrieve the public URL
     const { data: urlData } = supabase.storage
       .from("resumes")
       .getPublicUrl(path)
 
     const publicUrl = urlData.publicUrl
-    console.log("✅ Upload succeeded! Public URL:", publicUrl)
+    console.log("Upload succeeded! Public URL:", publicUrl)
     setMessage("Upload successful!")
 
-    // 3️⃣ Notify parent
+    // Notify parent
     if (onUploadSuccess) {
       onUploadSuccess(publicUrl)
     }
@@ -64,6 +70,7 @@ export default function ResumeUpload({
     setUploading(false)
   }
 
+  // Render the component
   return (
     <div className="space-y-2">
       <Input

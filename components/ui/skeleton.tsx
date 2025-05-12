@@ -1,3 +1,5 @@
+// Provided by v0 by Next.js
+
 import { cn } from "@/lib/utils"
 
 function Skeleton({
