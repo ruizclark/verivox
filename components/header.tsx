@@ -1,23 +1,28 @@
 // components/header.tsx
 
+// This component is a client component because it uses the `useSession` hook
 "use client"
 
+// Import React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { UserCircle } from "lucide-react"
 
-// ✅ Import the React helpers from auth-helpers-react
+// Import the React helpers from auth-helpers-react
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 
+// Export the Header component
 export function Header() {
   const session = useSession()
   const supabase = useSupabaseClient()   // ✅ get the *shared* client
   const router = useRouter()
 
+  // Check if the user is logged in
   const loggedIn = !!session?.user
 
+  // Check if the user is an admin
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="container flex h-16 items-center justify-between">
@@ -31,6 +36,7 @@ export function Header() {
             priority
             className="h-10 w-auto"
           />
+          {/* Mobile: VERIVOX text */}
           <span className="hidden font-serif text-xl font-bold text-harvard-crimson sm:inline-block">
             VERIVOX
           </span>
@@ -38,7 +44,7 @@ export function Header() {
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-6">
-          {/* EDIT: reinsert top-level site links */}
+          {/* Reinsert top-level site links */}
           <Link
             href="/profiles"
             className="font-serif text-sm font-medium transition-colors hover:text-harvard-crimson text-gray-700"
@@ -74,7 +80,7 @@ export function Header() {
                 </Button>
               </Link>
 
-              {/* EDIT: Add New Article link for authenticated users */}
+              {/* Add New Article link for authenticated users */}
               <Link href="/articles/new">
                 <Button
                   variant="outline"

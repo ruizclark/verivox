@@ -1,26 +1,35 @@
 // File: app/articles/[id]/edit/page.tsx
 "use client"
 
-// ✅ EDIT: Polyfill findDOMNode so ReactQuill works under Next.js App Router
+// Polyfill findDOMNode so ReactQuill works under Next.js App Router
 import ReactDOM from "react-dom"
 if (typeof (ReactDOM as any).findDOMNode !== "function") {
   (ReactDOM as any).findDOMNode = (instance: any): any => instance
 }
 
+// Polyfill for ReactQuill
 import React, { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import "react-quill/dist/quill.snow.css"
+// Import CSS for ReactQuill
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react"
+// Import Supabase client
 import { useRouter, useParams } from "next/navigation"
+// Import Next.js router and params
 import { Input } from "@/components/ui/input"
+// Import custom Input component
 import { Textarea } from "@/components/ui/textarea"
+// Import custom Textarea component
 import { Button } from "@/components/ui/button"
+// Import custom Button component
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+// Import custom Tooltip component
 import { useToast } from "@/components/ui/use-toast"
 
 // ReactQuill only loads on client
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false })
 
+// Import ReactQuill dynamically to avoid SSR issues
 export default function EditArticlePage() {
   const session = useSession()
   const supabase = useSupabaseClient()
@@ -28,9 +37,10 @@ export default function EditArticlePage() {
   const { toast } = useToast()
   const { id } = useParams()!
 
+  // Get article ID from URL params
   const DEFAULT_BANNER_URL = "/images/verivox-banner.png"
 
-  // --- Form state ---
+  // State variables for article data
   const [title, setTitle] = useState("")
   const [excerpt, setExcerpt] = useState("")
   const [content, setContent] = useState<string>("")
@@ -46,7 +56,9 @@ export default function EditArticlePage() {
       router.push("/login")
       return
     }
+    // Check if user is logged in
     setLoading(true)
+    // Fetch article data from Supabase
     supabase
       .from("articles")
       .select("title, excerpt, content, image_url, author_id")  // ✅ EDIT: removed category from select
@@ -54,10 +66,12 @@ export default function EditArticlePage() {
       .single()
       .then(({ data, error }) => {
         setLoading(false)
+        // Handle loading state
         if (error || !data) {
           setErrorMsg("Failed to load article.")
           return
         }
+        // Set state with fetched data
         setTitle(data.title)
         setExcerpt(data.excerpt)
         setContent(data.content)
@@ -66,29 +80,36 @@ export default function EditArticlePage() {
         } else {
           setImageUrl(data.image_url)
         }
-        // ✅ EDIT: removed category initialization
+        // Check if the logged-in user is the author
         if (data.author_id !== session.user.id) {
           router.push(`/articles/${id}`)
         }
       })
+      // Handle error state
   }, [id, session, supabase, router])
 
   // Handle save (update) action
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
+    // Validate input
     const plainText = content.replace(/<(.|\n)*?>/g, "").trim()
+    // Strip HTML tags from content
     if (!title.trim() || !plainText) {
       setErrorMsg("Title and content are required.")
       return
     }
+    // Check if title and content are empty
     setSaving(true)
+    // Set saving state
     const finalUrl = useDefaultBanner ? DEFAULT_BANNER_URL : imageUrl
+    // Use default banner URL if checkbox is checked
     const { error } = await supabase
       .from("articles")
-      .update({ title, excerpt, content, image_url: finalUrl })  // ✅ EDIT: removed category from update
+      .update({ title, excerpt, content, image_url: finalUrl })  
       .eq("id", id)
     setSaving(false)
+    // Reset saving state
     if (error) {
       setErrorMsg(error.message)
     } else {
@@ -99,12 +120,14 @@ export default function EditArticlePage() {
 
   // Handle delete action
   const handleDelete = async () => {
+    // Confirm deletion
     if (!confirm("Are you sure you want to delete this article? This cannot be undone.")) return
     const { error } = await supabase
       .from("articles")
       .delete()
       .eq("id", id)
-    if (error) {
+    // Delete article from Supabase
+      if (error) {
       alert("Failed to delete: " + error.message)
     } else {
       toast({ title: "Article deleted." })
@@ -112,8 +135,10 @@ export default function EditArticlePage() {
     }
   }
 
+  // Render loading state
   if (loading) return <p className="text-center py-10">Loading…</p>
 
+  // Render error state
   return (
     <div className="max-w-2xl mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Edit Article</h1>
@@ -130,7 +155,7 @@ export default function EditArticlePage() {
           />
         </div>
 
-        {/* Excerpt */}
+        {/* Include excerpt */}
         <div>
           <label className="block text-sm font-medium">Excerpt</label>
           <Textarea
@@ -141,7 +166,7 @@ export default function EditArticlePage() {
           />
         </div>
 
-        {/* Content */}
+        {/* Render main content */}
         <div>
           <label className="block text-sm font-medium">Content</label>
           <ReactQuill
@@ -164,6 +189,7 @@ export default function EditArticlePage() {
           <label className="flex items-center text-sm font-medium">Image URL
             <Tooltip>
               <TooltipTrigger asChild>
+                {/* Tooltip for image URL input */}
                 <button
                   type="button"
                   className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground text-xs"
@@ -173,12 +199,14 @@ export default function EditArticlePage() {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" align="start" className="max-w-xs">
+                {/* Tooltip content */}
                 <p className="text-sm">
                   Paste a shareable image URL. If it fails, the default banner will display.
                 </p>
               </TooltipContent>
             </Tooltip>
           </label>
+          {/* Input for image URL */}
           <Input
             type="url"
             placeholder="https://example.com/image.jpg"
@@ -186,6 +214,7 @@ export default function EditArticlePage() {
             onChange={(e) => setImageUrl(e.target.value)}
             disabled={saving || useDefaultBanner}
           />
+          {/* Checkbox for default banner */}
           <div className="mt-2 flex items-center">
             <input
               id="useDefaultBanner"
@@ -195,6 +224,7 @@ export default function EditArticlePage() {
               disabled={saving}
               className="h-4 w-4"
             />
+            {/* Label for checkbox */}
             <label htmlFor="useDefaultBanner" className="ml-2 text-sm">
               Use default VERIVOX banner
             </label>

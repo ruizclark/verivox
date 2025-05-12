@@ -1,10 +1,11 @@
 // app/about/page.tsx
 
+// Import necessary modules and components
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-// ✅ EDIT: import the client component that chooses /signup vs /register
 import RegisterCTA from "@/components/RegisterCTA"
 
+// Server component for the About page
 export default function AboutPage() {
   return (
     <div className="container py-10">
@@ -19,6 +20,7 @@ export default function AboutPage() {
               height={120}
               className="h-32 w-auto"
             />
+            {/* Headers for page*/}
             <div className="space-y-2">
               <h1 className="font-serif text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                 About VERIVOX
@@ -30,6 +32,7 @@ export default function AboutPage() {
           </div>
 
           <p>
+            {/* Description of VERIVOX */}
             VERIVOX was launched in 2025 as a space to amplify the voices of current and former candidates of the
             Doctoral program in Education Leadership (EdLD) at the Harvard Graduate School of Education (HGSE). 
             VERIVOX is a student-led initiative, operating independently of HGSE. As a volunteer-run platform, VERIVOX 
@@ -57,6 +60,7 @@ export default function AboutPage() {
             practice-based doctorate designed to prepare transformative leaders in education. The program combines
             rigorous coursework with a year-long residency in an education organization.
           </p>
+          {/* Description of the EdLD program */}
           <p className="mb-6">
             EdLD students and alumni are a diverse group of education professionals committed to improving educational
             opportunities and outcomes for all students. They work in a variety of roles and settings, including school
@@ -79,12 +83,12 @@ export default function AboutPage() {
             <li>Stay informed about the work and achievements of your fellow EdLD community members</li>
           </ul>
           <div className="flex justify-center">
-            {/* ✅ UPDATED: use the RegisterCTA which handles signup vs register */}
+            {/* Use the RegisterCTA component to handle signup vs register */}
             <RegisterCTA />
           </div>
         </section>
 
-        {/* Contact Section */}
+        {/* Add section with contact info */}
         <section>
           <h2 className="font-serif text-2xl font-bold mb-4">Contact Us</h2>
           <p>

@@ -1,5 +1,6 @@
 // File: app/profiles/page.tsx
 
+// Import necessary modules and components
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 
-// EDIT: include 'slug' in the Profile type
+// Include 'slug' in the Profile type
 type Profile = {
   id: string
   slug: string
@@ -20,6 +21,7 @@ type Profile = {
   resume_url: string | null
 }
 
+// Define the Props type for the component
 interface Props {
   searchParams: {
     page?: string
@@ -27,6 +29,7 @@ interface Props {
   }
 }
 
+// Define the main component
 export default async function ProfilesPage({ searchParams }: Props) {
   const pageSize   = 12
   const pageNumber = parseInt(searchParams.page || "1", 10)
@@ -34,27 +37,30 @@ export default async function ProfilesPage({ searchParams }: Props) {
   const from       = (pageNumber - 1) * pageSize
   const to         = pageNumber * pageSize - 1
 
-  // ✅ EDIT: fetch all graduation_year then dedupe in JS
+  // Fetch all graduation_year then dedupe in JS
   const { data: rawCohorts } = await supabaseAdmin
     .from("profiles")
     .select("graduation_year")
     .eq("approved", true)
     .order("graduation_year", { ascending: false })
 
-  // ✅ EDIT: dedupe years via Set, add explicit type
+  // Dedupe years via Set, add explicit type
   const cohorts: number[] = rawCohorts
     ? Array.from(new Set(rawCohorts.map((r: { graduation_year: number }) => r.graduation_year)))
     : []
 
-  // build base query with count
+  // Build base query with count
   let query = supabaseAdmin
     .from("profiles")
+    // Select only the fields we need
     .select(
       "id, slug, full_name, photo_url, graduation_year, title, employer, resume_url",
       { count: "exact" }
     )
+    // Use `eq` to filter by approved profiles
     .eq("approved", true)
 
+  // If a cohort is selected, filter by graduation_year
   if (searchTerm) {
     const filter = `%${searchTerm}%`
     query = query.or(
@@ -62,10 +68,12 @@ export default async function ProfilesPage({ searchParams }: Props) {
     )
   }
 
+  // If a cohort is selected, filter by graduation_year
   const { data, error, count } = await query
     .order("full_name", { ascending: true })
     .range(from, to)
 
+  // If there's an error, return an error message
   if (error) {
     return (
       <p className="text-red-500">
@@ -74,10 +82,12 @@ export default async function ProfilesPage({ searchParams }: Props) {
     )
   }
 
+  // If no data is returned, return a message
   const profiles   = (data as Profile[] | null) || []
   const totalCount = count  ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
+  // If no profiles are found, return a message
   return (
     <div className="container py-10">
       {/* Header */}
@@ -104,13 +114,15 @@ export default async function ProfilesPage({ searchParams }: Props) {
             className="w-full pl-8"
           />
         </form>
+        {/* Cohort Filter */}
         <div className="flex gap-2">
           <select
             name="cohort"
             className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
           >
+            {/* EDIT: default value to empty string */}
             <option value="">All Cohorts</option>
-            {/* ✅ EDIT: explicit type on yr */}
+            {/* Explicit type on yr */}
             {cohorts.map((yr: number) => (
               <option key={yr} value={yr}>
                 Class of {yr}
@@ -120,6 +132,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
         </div>
       </div>
 
+      {/* No Results Found */}
       {profiles.length === 0 ? (
         <div className="mt-8 text-center text-muted-foreground">
           No results found.
@@ -132,7 +145,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
               <Link href={`/${p.slug}`} key={p.id}>
                 <Card className="overflow-hidden transition-all hover:shadow-lg">
                   <div className="aspect-square overflow-hidden">
-                    {/* EDIT: fallback to placeholder if no photo */}
+                    {/* Fallback to placeholder if no photo */}
                     <Image
                       src={p.photo_url || "/images/placeholder.png"}
                       alt={p.full_name}
@@ -141,6 +154,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
                       className="h-full w-full object-cover transition-all hover:scale-105"
                     />
                   </div>
+                  {/* Card Content */}
                   <CardContent className="p-4">
                     <h3 className="font-serif text-lg font-bold">{p.full_name}</h3>
                     <p className="text-sm text-muted-foreground">
@@ -166,6 +180,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
                 ) : (
                   <Button variant="outline" size="sm" disabled>Previous</Button>
                 )}
+                {/* Pagination Buttons */}
                 {Array.from({ length: totalPages }, (_, i) => {
                   const p = i + 1
                   const isCurrent = p === pageNumber
@@ -184,6 +199,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
                     </Link>
                   )
                 })}
+                {/* Next Button */}
                 {pageNumber < totalPages ? (
                   <Link href={`/profiles?search=${encodeURIComponent(searchTerm)}&page=${pageNumber + 1}`}>
                     <Button variant="outline" size="sm">Next</Button>

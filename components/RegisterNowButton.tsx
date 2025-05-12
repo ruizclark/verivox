@@ -1,10 +1,12 @@
 // File: components/RegisterNowButton.tsx
 "use client"
 
+// Import modules and components
 import { useSession } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+// Import Dialog components
 import {
   Dialog,
   DialogContent,
@@ -15,11 +17,13 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 
+// Import icons
 export default function RegisterNowButton() {
   const session = useSession()
   const router = useRouter()
   const [open, setOpen] = useState(false)
 
+  // Function to handle button click
   const handleClick = () => {
     if (session) {
       setOpen(true)
@@ -28,6 +32,7 @@ export default function RegisterNowButton() {
     }
   }
 
+  // Function to handle dialog close
   return (
     <>
       <Button
@@ -38,6 +43,7 @@ export default function RegisterNowButton() {
         Register Now
       </Button>
 
+      {/* Dialog for already registered users */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-harvard-crimson text-white max-w-sm mx-auto rounded-xl shadow-xl">
           <DialogHeader>

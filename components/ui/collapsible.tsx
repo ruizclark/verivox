@@ -1,3 +1,5 @@
+// Provided by v0 by Next.js
+
 "use client"
 
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"

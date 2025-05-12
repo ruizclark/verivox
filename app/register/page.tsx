@@ -1,7 +1,9 @@
 // app/register/page.tsx
 
+// This file is part of the "Alumni Network" project.
 "use client"
 
+// Import necessary libraries and components
 import React, { useState, useEffect } from "react"
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
@@ -11,28 +13,33 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
+// This page handles the registration process for users.
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = useSupabaseClient()
   const session = useSession()
 
-  // --- Auth & redirect logic (unchanged) ---
+  // Auth state
   const [loadingAuth, setLoadingAuth] = useState(true)
   const [errorMsg, setErrorMsg]     = useState("")
   const [userId, setUserId]         = useState<string>("")
 
+  // Check if user is authenticated
   useEffect(() => {
     if (!session) {
       router.push("/login")
+    // Redirect to login if not authenticated
     } else if (!session.user.confirmed_at) {
       setErrorMsg("Please confirm your email first.")
+    // Redirect to confirmation page if email not confirmed
     } else {
       setUserId(session.user.id)
     }
+    // Set userId if authenticated
     setLoadingAuth(false)
   }, [router, session])
 
-  // --- Form state ---
+  // Form state
   const [fullName, setFullName]             = useState("")  
   const [graduationYear, setGraduationYear] = useState("")  
   const [title, setTitle]                   = useState("")  
@@ -46,16 +53,12 @@ export default function RegisterPage() {
 
   const [submitting, setSubmitting] = useState(false)
 
-  // --- Submit handler ---
+  // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
 
-    // EDIT: profile photo is now optional, so remove requirement
-    // if (!photoUrl) {
-    //   return setErrorMsg("Please upload a profile photo.")
-    // }
-
+    // Validation checks for required fields 
     if (!userId)                return setErrorMsg("Not signed in.")
     if (!fullName.trim())       return setErrorMsg("Full name is required.")
     if (!graduationYear)        return setErrorMsg("Graduation year is required.")
@@ -65,7 +68,7 @@ export default function RegisterPage() {
     if (!resumeUrl)             return setErrorMsg("Please upload your résumé.")
     if (!about.trim())          return setErrorMsg("Please share something about yourself.")
 
-    // generate slug
+    // Generate slug
     const slug = fullName
       .trim()
       .toLowerCase()
@@ -74,6 +77,7 @@ export default function RegisterPage() {
 
     setSubmitting(true)
 
+    // Check if slug already exists
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,21 +97,25 @@ export default function RegisterPage() {
       }),
     })
 
+    // Handle response
     const json = await res.json()
     setSubmitting(false)
 
+    // Check if the response is ok
     if (res.ok) {
       router.push("/register/pending")
+    // Redirect to pending page
     } else {
       setErrorMsg(json.error || "Registration failed.")
     }
   }
 
-  // --- Render based on auth state ---
+  // Loading state 
   if (loadingAuth) {
     return <p className="text-center py-8">Loading…</p>
   }
 
+  // Error state
   if (errorMsg && !userId) {
     return (
       <div className="max-w-md mx-auto py-8 text-center">
@@ -119,7 +127,7 @@ export default function RegisterPage() {
     )
   }
 
-  // --- Main form ---
+  // Main form 
   return (
     <div className="max-w-md mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Profile Information</h1>

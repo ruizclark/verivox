@@ -1,17 +1,23 @@
 // File: app/page.tsx
 
+// Import necessary modules and components
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, BookOpen, Users, FileText } from "lucide-react"
-import { supabaseAdmin } from "@/lib/supabase/admin"   // ✅ EDIT: import supabaseAdmin
-import { format } from "date-fns"                     // ✅ EDIT: import date formatter
+// Import Supabase client for data fetching
+import { supabaseAdmin } from "@/lib/supabase/admin"   
+// Import components for UI elements
+import { format } from "date-fns" 
+// Import date formatter
 import RegisterCTA from "@/components/RegisterCTA"
-import AccountLink from "@/components/AccountLink"    // ✅ EDIT: import AccountLink for dynamic login/logout
+// Import RegisterCTA component for dynamic registration
+import AccountLink from "@/components/AccountLink"   
 
-export default async function Home() {                // ✅ EDIT: made async to fetch data
-  // ✅ EDIT: fetch the 3 most recent approved profiles
+// Import AccountLink component for dynamic account linking
+export default async function Home() {                
+  // Retch the 3 most recent approved profiles
   const { data: featuredProfiles, error: profErr } = await supabaseAdmin
     .from("profiles")
     .select("id, slug, full_name, photo_url, graduation_year, title, employer")
@@ -19,21 +25,24 @@ export default async function Home() {                // ✅ EDIT: made async to
     .order("created_at", { ascending: false })
     .limit(3)
 
+  // Check for errors in fetching profiles
   if (profErr) {
     console.error("Error loading featured profiles:", profErr)
   }
 
-  // ✅ EDIT: fetch the 4 most recent articles
+  // Fetch the 4 most recent articles
   const { data: latestArticles, error: artErr } = await supabaseAdmin
     .from("articles")
     .select("id, title, author_name, date, image_url, excerpt")
     .order("date", { ascending: false })
     .limit(4)
 
+  // Check for errors in fetching articles
   if (artErr) {
     console.error("Error loading latest articles:", artErr)
   }
 
+  // Check if the user is logged in
   return (
     <div className="flex flex-col">
       {/* Hero Section - Updated with clean design */}
@@ -50,10 +59,12 @@ export default async function Home() {                // ✅ EDIT: made async to
           />
         </div>
 
+        {/* Main Content */}
         <div className="container px-4 md:px-6 relative z-10">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_500px]">
             <div className="flex flex-col justify-center space-y-6">
               <div className="space-y-4">
+                {/* Dynamic AccountLink component for user login */}
                 <h1 className="font-serif text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-gray-900">
                   Amplifying the Voices of the EdLD Community
                 </h1>
@@ -61,6 +72,7 @@ export default async function Home() {                // ✅ EDIT: made async to
                   A platform for Harvard EdLD candidates and alumni to share their work and connect with each other.
                 </p>
               </div>
+              {/* Conditional rendering of AccountLink based on user login status */}
               <div className="flex flex-col gap-3 min-[400px]:flex-row">
                 <Link href="/signup">
                   <Button size="lg" className="bg-harvard-crimson hover:bg-harvard-crimson/90">
@@ -74,6 +86,7 @@ export default async function Home() {                // ✅ EDIT: made async to
                 </Link>
               </div>
             </div>
+            {/* Logo Section */}
             <div className="relative">
               {/* Decorative elements */}
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-harvard-crimson/5 rounded-full"></div>
@@ -94,7 +107,7 @@ export default async function Home() {                // ✅ EDIT: made async to
         </div>
       </section>
 
-      {/* Features Section - Updated with clean design */}
+      {/* Features Section with clean design */}
       <section className="py-16 md:py-24 bg-gray-50">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -102,29 +115,35 @@ export default async function Home() {                // ✅ EDIT: made async to
               <h2 className="font-serif text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-gray-900">
                 Connect with the EdLD Community
               </h2>
+              {/* Updated description with clear call to action */}
               <p className="text-gray-600 md:text-xl">
                 VERIVOX provides a platform for EdLD candidates and alumni to showcase their work and connect with each
                 other.
               </p>
             </div>
           </div>
+          {/* Feature Cards */}
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 py-12 md:grid-cols-3 lg:gap-12">
             <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                 <Users className="h-12 w-12 text-harvard-crimson mb-4" />
                 <h3 className="font-serif text-xl font-bold text-gray-900">Member Profiles</h3>
+                {/* Updated description with clear call to action */}
                 <p className="text-sm text-gray-600 mt-2">
                   Create your professional profile to showcase your work and connect with other EdLD members.
                 </p>
+                {/* Dynamic link to profiles page */}
                 <Link href="/profiles" className="mt-4 inline-flex items-center text-harvard-crimson">
                   View Profiles <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </CardContent>
             </Card>
+            {/* Updated description with clear call to action */}
             <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                 <FileText className="h-12 w-12 text-harvard-crimson mb-4" />
                 <h3 className="font-serif text-xl font-bold text-gray-900">Publish Articles</h3>
+                {/* Descriptoin of purpose */}
                 <p className="text-sm text-gray-600 mt-2">
                   Share your research, insights, and experiences with the EdLD community and beyond.
                 </p>
@@ -133,6 +152,7 @@ export default async function Home() {                // ✅ EDIT: made async to
                 </Link>
               </CardContent>
             </Card>
+            {/* Call to action for current students and alumni */}
             <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                 <BookOpen className="h-12 w-12 text-harvard-crimson mb-4" />
@@ -163,12 +183,13 @@ export default async function Home() {                // ✅ EDIT: made async to
             </div>
           </div>
 
+          {/* Profile Cards */}
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3 lg:gap-12">
             {featuredProfiles?.map((p) => (
               <Link href={`/${p.slug}`} key={p.id}>
                 <Card className="overflow-hidden transition-all hover:shadow-lg border border-gray-200">
                 <div className="aspect-square overflow-hidden">
-                    {/* EDIT: fallback to placeholder if no photo */}
+                    {/* Fallback to placeholder if no photo */}
                     <Image
                       src={p.photo_url || "/images/placeholder.png"}
                       alt={p.full_name}
@@ -177,6 +198,7 @@ export default async function Home() {                // ✅ EDIT: made async to
                       className="h-full w-full object-cover transition-all hover:scale-105"
                     />
                   </div>
+                  {/* Profile details */}
                   <CardContent className="p-4">
                     <h3 className="font-serif text-lg font-bold text-gray-900">
                       {p.full_name}
@@ -193,6 +215,7 @@ export default async function Home() {                // ✅ EDIT: made async to
             ))}
           </div>
 
+          {/* Button to view all profiles */}
           <div className="flex justify-center">
             <Link href="/profiles">
               <Button variant="outline" className="gap-1 border-gray-300 text-gray-700 hover:bg-gray-50">
@@ -217,6 +240,7 @@ export default async function Home() {                // ✅ EDIT: made async to
             </div>
           </div>
 
+          {/* Article Cards */}
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:gap-12">
             {latestArticles?.map((a) => (
               <Link href={`/articles/${a.id}`} key={a.id}>
@@ -230,6 +254,7 @@ export default async function Home() {                // ✅ EDIT: made async to
                       className="h-full w-full object-cover transition-all hover:scale-105"
                     />
                   </div>
+                  {/* Article details */}
                   <CardContent className="p-4">
                     <h3 className="font-serif text-lg font-bold text-gray-900">
                       {a.title}
@@ -246,6 +271,7 @@ export default async function Home() {                // ✅ EDIT: made async to
             ))}
           </div>
 
+          {/* Button to view all articles */}
           <div className="flex justify-center">
             <Link href="/articles">
               <Button variant="outline" className="gap-1 border-gray-300 text-gray-700 hover:bg-gray-50">
@@ -256,7 +282,7 @@ export default async function Home() {                // ✅ EDIT: made async to
         </div>
       </section>
 
-      {/* CTA Section - Updated with dynamic Register button */}
+      {/* CTA Section with dynamic Register button */}
       <section className="bg-harvard-crimson py-16 md:py-24">
         <div className="container px-4 md:px-6 text-white">
           <div className="flex flex-col items-center justify-center space-y-6 text-center">

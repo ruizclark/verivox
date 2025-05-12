@@ -1,3 +1,5 @@
+// Provided by v0 by Next.js
+
 "use client"
 
 import { useToast } from "@/hooks/use-toast"

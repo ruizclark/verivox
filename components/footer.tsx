@@ -1,15 +1,20 @@
+// This file is part of the "ui" component library.
 import Link from "next/link"
 import Image from "next/image"
 
+// Export the Footer component
 export function Footer() {
+  // This component renders the footer of the website
   return (
+    // See a footer element for semantic HTML
     <footer className="border-t bg-gray-50">
       <div className="container py-8 md:py-12">
-        {/* ✅ EDIT: use 3 columns on md+ */}
+        {/* Use 3 columns on md+ */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Left column: logo & description */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
+              {/* Use Image component for the logo */}
               <Image
                 src="/images/verivox-logo.png"
                 alt="VERIVOX Logo"
@@ -17,13 +22,16 @@ export function Footer() {
                 height={40}
                 className="h-10 w-auto"
               />
+              {/* Use a span for the logo text */}
               <span className="font-serif text-xl font-bold text-harvard-crimson">
                 VERIVOX
               </span>
             </div>
+            {/* Use a paragraph for the description */}
             <p className="text-sm text-gray-600">
               Amplifying the Voices of the EdLD Community
             </p>
+            {/* Use a paragraph for the additional description */}
             <p className="text-sm text-gray-600 mt-2">
               VERIVOX was launched in 2025 as a space to amplify the voices of the
               EdLD community.
@@ -31,7 +39,8 @@ export function Footer() {
           </div>
 
           {/* Center column: Platform */}
-          <div className="flex flex-col gap-2 items-center"> {/* ✅ EDIT: center this column’s contents */}
+          <div className="flex flex-col gap-2 items-center"> 
+          {/* Center this column’s contents */}
           <h3 className="font-serif text-lg font-medium text-gray-900">
               Platform
             </h3>
@@ -39,6 +48,8 @@ export function Footer() {
               href="/profiles"
               className="text-sm text-gray-600 hover:text-harvard-crimson"
             >
+              {}
+              {/* Use a span for the link text */}
               Profiles
             </Link>
             <Link
@@ -56,7 +67,7 @@ export function Footer() {
           </div>
 
           {/* Right column: Legal */}
-          <div className="flex flex-col gap-2 items-center"> {/* ✅ EDIT: center this column’s contents */}
+          <div className="flex flex-col gap-2 items-center"> 
             <h3 className="font-serif text-lg font-medium text-gray-900">
               Legal
             </h3>

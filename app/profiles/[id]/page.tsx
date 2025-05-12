@@ -1,10 +1,11 @@
 // File: app/profiles/[id]/page.tsx
 
+// Import necessary libraries and components
 import React from "react"
-import Link from "next/link"                              // ✅ EDIT: ensure Link is imported
+import Link from "next/link"                              
 import Image from "next/image"
-import { supabaseAdmin } from "@/lib/supabase/admin"    // unchanged
-import { notFound } from "next/navigation"              // unchanged
+import { supabaseAdmin } from "@/lib/supabase/admin"  
+import { notFound } from "next/navigation"             
 
 // UI components & icons (same as slug page)
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Linkedin, Globe, FileText, MapPin, Calendar } from "lucide-react"
 import { format } from "date-fns"                     // ✅ EDIT: import date formatter
 
-// Profile type
+// Type definitions
 type Profile = {
   full_name:       string
   graduation_year: number
@@ -38,6 +39,7 @@ type Article = {
   excerpt:     string
 }
 
+// Main component
 export default async function ProfileByIdPage({
   params,
 }: {
@@ -45,20 +47,23 @@ export default async function ProfileByIdPage({
 }) {
   const { id } = params
 
-  // fetch by primary-key `id`
+  // Fetch by primary-key `id`
   const { data: pdata, error: perror } = await supabaseAdmin
     .from("profiles")
     .select("*")
     .eq("id", id)
     .single()
+  // Check for errors or if no data is found
   if (perror || !pdata) {
     return notFound()
   }
+  // Cast to Profile type
   const profile = pdata as Profile
 
+  // Check if profile is public
   const cohort = `Class of ${profile.graduation_year}`
 
-  // fetch articles by this author
+  // Fetch articles by this author
   const { data: adata, error: aerr } = await supabaseAdmin
     .from("articles")
     .select("id, title, author_name, date, image_url, excerpt")
@@ -66,10 +71,11 @@ export default async function ProfileByIdPage({
     .order("date", { ascending: false })
   const articles = (adata || []) as Article[]
 
+  // Check for errors or if no data is found
   return (
     <div className="relative">
-      {/* EDIT: removed watermark overlay for transparent background */}
 
+      {/* Background image */}
       <div className="relative z-10 container py-10 space-y-10">
         <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:gap-12">
           {/* Sidebar */}
@@ -84,6 +90,7 @@ export default async function ProfileByIdPage({
                   className="object-cover"
                 />
               </div>
+              {/* Show placeholder if no full_name */}
               <h1 className="mt-4 font-serif text-2xl font-bold">
                 {profile.full_name}
               </h1>
@@ -94,6 +101,7 @@ export default async function ProfileByIdPage({
               </p>
             </div>
 
+            {/* Profile Links */}
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center gap-2">
@@ -111,6 +119,7 @@ export default async function ProfileByIdPage({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
+                      {/* Button with LinkedIn icon */}
                       <Button variant="outline" size="sm" className="gap-1">
                         <Linkedin className="h-4 w-4" /> LinkedIn
                       </Button>
@@ -122,17 +131,20 @@ export default async function ProfileByIdPage({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
+                      {/* Button with Globe icon */}
                       <Button variant="outline" size="sm" className="gap-1">
                         <Globe className="h-4 w-4" /> Website
                       </Button>
                     </Link>
                   )}
+                  {/* Button to download résumé */}
                   {profile.resume_url && (
                     <a
                       href={profile.resume_url}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
+                      {/* Button with FileText icon */}
                       <Button variant="outline" size="sm" className="gap-1">
                         <FileText className="h-4 w-4" /> Download Résumé
                       </Button>
@@ -157,7 +169,7 @@ export default async function ProfileByIdPage({
               <h2 className="font-serif text-3xl font-bold tracking-tighter text-gray-900">
                 VERIVOX Articles
               </h2>
-
+              {/* Show placeholder if no articles */}
               {articles.length === 0 ? (
                 <p className="text-gray-500">No articles published yet.</p>
               ) : (
@@ -166,6 +178,7 @@ export default async function ProfileByIdPage({
                     href={`/articles/${a.id}`}                  // ✅ EDIT: wrap each Card in Link to its article
                     key={a.id}
                   >
+                    {/* Card for each article */}
                     <Card className="overflow-hidden transition-shadow hover:shadow-lg border border-gray-200">
                       {/* Banner image — full width, half-height */}
                       <div className="w-full overflow-hidden">
@@ -178,6 +191,7 @@ export default async function ProfileByIdPage({
                           style={{ height: 200 }}
                         />
                       </div>
+                      {/* Card content */}
                       <CardContent className="p-6">
                         <h3 className="font-serif text-xl font-bold text-gray-900">
                           {a.title}

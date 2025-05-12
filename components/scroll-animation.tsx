@@ -1,12 +1,16 @@
+// Client-side component for scroll animation
 "use client"
 
+// Import React from "react"
 import { useEffect, useState } from "react"
 import Image from "next/image"
 
+// Export the ScrollAnimation component
 export function ScrollAnimation() {
   const [scrollY, setScrollY] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
 
+  // Effect to handle scroll events
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY)
@@ -19,6 +23,7 @@ export function ScrollAnimation() {
       }
     }
 
+    // Add scroll event listener
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isVisible])
@@ -35,6 +40,7 @@ export function ScrollAnimation() {
         }`}
         aria-hidden="true"
       >
+        {/* Background logo */}
         <div className="relative w-full h-full max-w-screen-xl mx-auto">
           <Image
             src="/images/verivox-logo.png"
