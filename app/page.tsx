@@ -69,7 +69,7 @@ export default async function Home() {
                   Amplifying the Voices of the EdLD Community
                 </h1>
                 <p className="max-w-[600px] text-gray-600 md:text-xl">
-                  A platform for Harvard EdLD candidates and alumni to share their work and connect with each other.
+                  A platform showcasing the work of current students and alumni of Harvard University’s Doctorate in Education Leadership (EdLD) program.
                 </p>
               </div>
               {/* Conditional rendering of AccountLink based on user login status */}
@@ -117,7 +117,7 @@ export default async function Home() {
               </h2>
               {/* Updated description with clear call to action */}
               <p className="text-gray-600 md:text-xl">
-                VERIVOX provides a platform for EdLD candidates and alumni to showcase their work and connect with each
+                VERIVOX provides a platform for EdLD students and alumni to showcase their work and connect with each
                 other.
               </p>
             </div>
@@ -158,7 +158,7 @@ export default async function Home() {
                 <BookOpen className="h-12 w-12 text-harvard-crimson mb-4" />
                 <h3 className="font-serif text-xl font-bold text-gray-900">EdLD Community</h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  Connect with current students and alumni from the Doctor of Education Leadership program.
+                  Connect with current EdLD students and alumni.
                 </p>
                 <Link href="/about" className="mt-4 inline-flex items-center text-harvard-crimson">
                   Learn More <ArrowRight className="ml-1 h-4 w-4" />
@@ -178,7 +178,7 @@ export default async function Home() {
                 Featured Profiles
               </h2>
               <p className="max-w-[900px] text-gray-600 md:text-xl">
-                Meet some of our newest EdLD community members
+                Meet some of our newest VERIVOX members
               </p>
             </div>
           </div>
@@ -291,7 +291,7 @@ export default async function Home() {
                 EdLD Network Members
               </h2>
               <p className="md:text-xl">
-                If you are a current or former EdLD candidate, register to connect with fellow members, share your work, and amplify your voice.
+                If you are a current or former EdLD student, register to connect with fellow members, share your work, and amplify your voice.
               </p>
             </div>
             {/* ✅ EDIT: replaced static Link with RegisterCTA client component */}
