@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 // Export the Header component
 export function Header() {
   const session = useSession()
+  const userId = session?.user.id
   const supabase = useSupabaseClient()   // ✅ get the *shared* client
   const router = useRouter()
 
@@ -70,7 +71,7 @@ export function Header() {
           {loggedIn ? (
             <>
               {/* Edit Profile button */}
-              <Link href="/register">
+              <Link href={`/profiles/${userId}/edit`}>
                 <Button
                   variant="outline"
                   size="sm"
