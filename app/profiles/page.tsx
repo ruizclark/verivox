@@ -31,9 +31,14 @@ interface Props {
 
 // Define the main component
 export default async function ProfilesPage({ searchParams }: Props) {
-  const pageSize   = 12
-  const pageNumber = parseInt(searchParams.page || "1", 10)
-  const searchTerm = (searchParams.search || "").trim()
+  const pageSize = 12
+  // await searchParams before accessing its fields
+  const { page: pageParam = "1", search: searchParam = "" } =
+    await Promise.resolve(searchParams)
+
+  const pageNumber = parseInt(pageParam, 10)
+  const searchTerm = searchParam.trim()
+
   const from       = (pageNumber - 1) * pageSize
   const to         = pageNumber * pageSize - 1
 
