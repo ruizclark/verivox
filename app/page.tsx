@@ -69,8 +69,7 @@ export default async function Home() {
                   Amplifying the Voices of the EdLD Community
                 </h1>
                 <p className="max-w-[600px] text-gray-600 md:text-xl">
-                  A platform showcasing the work of current students and alumni of Harvard University’s Doctorate in Education Leadership (EdLD) program.
-                </p>
+                  A platform showcasing work by students and alumni of Harvard’s Doctorate in Education Leadership (EdLD) program.                </p>
               </div>
               {/* Conditional rendering of AccountLink based on user login status */}
               <div className="flex flex-col gap-3 min-[400px]:flex-row">
