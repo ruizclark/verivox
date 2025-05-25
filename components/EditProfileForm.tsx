@@ -1,23 +1,27 @@
-// File: components/EditProfileForm.tsx
+// components/EditProfileForm.tsx
 "use client"
 
 import React, { useState } from "react"
 import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
+import ResumeUpload from "./ResumeUpload"
+import PhotoUpload from "./PhotoUpload"
+import { Input } from "./ui/input"
+import { Textarea } from "./ui/textarea"
+import { Button } from "./ui/button"
+import { useToast } from "./ui/use-toast"
 
 export interface ProfileData {
-  full_name: string
+  full_name:       string
+  photo_url:       string
   graduation_year: number
-  title: string
-  employer: string
-  location: string
-  linkedin_url: string | null
-  website_url: string | null
-  about: string
+  title:           string
+  employer:        string
+  location:        string
+  linkedin_url:    string | ""
+  website_url:     string | ""
+  resume_url:      string
+  about:           string
 }
 
 export default function EditProfileForm({
@@ -28,23 +32,19 @@ export default function EditProfileForm({
   initialProfile: ProfileData
 }) {
   const supabase = useSupabaseClient()
-  const router = useRouter()
-  const { toast } = useToast()
+  const router   = useRouter()
+  const { toast }= useToast()
 
-  const [fullName, setFullName] = useState(initialProfile.full_name)
-  const [graduationYear, setGraduationYear] = useState<number | "">(
-    initialProfile.graduation_year
-  )
-  const [title, setTitle] = useState(initialProfile.title)
-  const [employer, setEmployer] = useState(initialProfile.employer)
-  const [location, setLocation] = useState(initialProfile.location)
-  const [linkedinUrl, setLinkedinUrl] = useState(
-    initialProfile.linkedin_url || ""
-  )
-  const [websiteUrl, setWebsiteUrl] = useState(
-    initialProfile.website_url || ""
-  )
-  const [about, setAbout] = useState(initialProfile.about)
+  const [fullName, setFullName]             = useState(initialProfile.full_name)
+  const [photoUrl, setPhotoUrl]             = useState(initialProfile.photo_url)
+  const [graduationYear, setGraduationYear] = useState(initialProfile.graduation_year.toString())
+  const [title, setTitle]                   = useState(initialProfile.title)
+  const [employer, setEmployer]             = useState(initialProfile.employer)
+  const [location, setLocation]             = useState(initialProfile.location)
+  const [linkedinUrl, setLinkedinUrl]       = useState(initialProfile.linkedin_url || "")
+  const [websiteUrl, setWebsiteUrl]         = useState(initialProfile.website_url || "")
+  const [resumeUrl, setResumeUrl]           = useState(initialProfile.resume_url)
+  const [about, setAbout]                   = useState(initialProfile.about)
 
   const [saving, setSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
@@ -66,21 +66,25 @@ export default function EditProfileForm({
     }
 
     setSaving(true)
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: fullName,
+        full_name:       fullName,
+        photo_url:       photoUrl,
         graduation_year: Number(graduationYear),
         title,
         employer,
         location,
-        linkedin_url: linkedinUrl || null,
-        website_url: websiteUrl || null,
+        linkedin_url:    linkedinUrl,
+        website_url:     websiteUrl,
+        resume_url:      resumeUrl,
         about,
       })
       .eq("user_id", userId)
 
     setSaving(false)
+
     if (error) {
       setErrorMsg(error.message)
     } else {
@@ -90,7 +94,7 @@ export default function EditProfileForm({
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="max-w-md mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Edit Profile</h1>
       {errorMsg && <p className="text-red-500 mb-2">{errorMsg}</p>}
 
@@ -108,13 +112,11 @@ export default function EditProfileForm({
 
         {/* Graduation Year */}
         <div>
-          <label className="block text-sm font-medium">
-            Graduation Year
-          </label>
+          <label className="block text-sm font-medium">Graduation Year</label>
           <Input
             type="number"
             value={graduationYear}
-            onChange={(e) => setGraduationYear(e.target.valueAsNumber)}
+            onChange={(e) => setGraduationYear(e.target.value)}
             disabled={saving}
           />
         </div>
@@ -132,9 +134,7 @@ export default function EditProfileForm({
 
         {/* Organization */}
         <div>
-          <label className="block text-sm font-medium">
-            Organization
-          </label>
+          <label className="block text-sm font-medium">Organization</label>
           <Input
             type="text"
             value={employer}
@@ -156,9 +156,7 @@ export default function EditProfileForm({
 
         {/* LinkedIn URL */}
         <div>
-          <label className="block text-sm font-medium">
-            LinkedIn URL
-          </label>
+          <label className="block text-sm font-medium">LinkedIn URL</label>
           <Input
             type="url"
             placeholder="(optional)"
@@ -170,9 +168,7 @@ export default function EditProfileForm({
 
         {/* Website URL */}
         <div>
-          <label className="block text-sm font-medium">
-            Website URL
-          </label>
+          <label className="block text-sm font-medium">Website URL</label>
           <Input
             type="url"
             placeholder="(optional)"
@@ -182,7 +178,7 @@ export default function EditProfileForm({
           />
         </div>
 
-        {/* About */}
+        {/* About You */}
         <div>
           <label className="block text-sm font-medium">About You</label>
           <Textarea
@@ -192,9 +188,57 @@ export default function EditProfileForm({
           />
         </div>
 
-        <Button type="submit" disabled={saving} className="w-full">
-          {saving ? "Saving…" : "Save Changes"}
-        </Button>
+        {/* Résumé Upload */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Upload Résumé (PDF)
+          </label>
+          <ResumeUpload userId={userId} onUploadSuccess={setResumeUrl} />
+          {resumeUrl && (
+            <p className="text-green-600 text-sm">
+              Résumé ready!{" "}
+              <a
+                href={resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View
+              </a>
+            </p>
+          )}
+        </div>
+
+        {/* Photo Upload */}
+        <div>
+          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />
+          {photoUrl && (
+            <img
+              src={photoUrl}
+              alt="Profile Photo"
+              className="mt-2 h-24 w-24 rounded-full object-cover"
+            />
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Button
+            type="submit"
+            disabled={saving}
+            className="flex-1 bg-gray-500 text-white hover:bg-gray-400"
+          >
+            {saving ? "Saving…" : "Save Changes"}
+          </Button>
+          <Button
+            type="button"
+            disabled={saving}
+            className="flex-1 bg-harvard-crimson text-white hover:bg-harvard-crimson/90"
+            onClick={() => router.push(`/profiles/${userId}`)}
+          >
+            Cancel
+          </Button>
+        </div>
       </form>
     </div>
   )
