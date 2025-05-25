@@ -2,18 +2,17 @@
 
 // This file is used to create a Supabase client and provide it to the app
 import { ReactNode, useState, useEffect } from "react"
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs"
 import {
   SessionContextProvider,
   type Session
 } from "@supabase/auth-helpers-react"
 
-// 1) Create a Supabase client
+// 1) Create exactly one Supabase client and hold it in state
 export default function SupabaseProvider({ children }: { children: ReactNode }) {
-  // 1) Create exactly one browser client
-  const [supabase] = useState(() => createPagesBrowserClient())
+  const [supabase] = useState(() => createBrowserSupabaseClient())
 
-  // 2) Load the initial session so hooks know about it immediately
+  // 2) Load the initial session so that hooks below know about it immediately
   const [initialSession, setInitialSession] = useState<Session | null | undefined>(undefined)
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -26,7 +25,7 @@ export default function SupabaseProvider({ children }: { children: ReactNode }) 
     return <div className="p-8 text-center">Loading auth…</div>
   }
 
-  // 4) Wrap in the official provider
+  // 4) Wrap the rest of the app in the official SessionContextProvider
   return (
     <SessionContextProvider
       supabaseClient={supabase}
