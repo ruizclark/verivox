@@ -33,8 +33,7 @@ export function Footer() {
             </p>
             {/* Use a paragraph for the additional description */}
             <p className="text-sm text-gray-600 mt-2">
-              VERIVOX was launched in 2025 as a space to amplify the voices of the
-              EdLD community.
+              VERIVOX was launched in 2025 as an independent student-led initiative.
             </p>
           </div>
 
@@ -72,7 +71,7 @@ export function Footer() {
               Legal
             </h3>
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               className="text-sm text-gray-600 hover:text-harvard-crimson"
             >
               Privacy Policy
