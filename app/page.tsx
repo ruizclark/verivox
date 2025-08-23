@@ -326,8 +326,8 @@ export default async function Home() {
                 If you are a current or former EdLD student, register to connect with fellow members, share your work, and amplify your voice.
               </p>
             </div>
-            {/* ✅ EDIT: replaced static Link with RegisterCTA client component */}
-            <RegisterCTA />
+            {/* Temporarily hide "Build My Profile" button until the logic is fixed */}
+            {/* <RegisterCTA /> */}
           </div>
         </div>
       </section>

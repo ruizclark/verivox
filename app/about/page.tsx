@@ -83,8 +83,8 @@ export default function AboutPage() {
             <li>Stay informed about the work and achievements of your fellow EdLD community members</li>
           </ul>
           <div className="flex justify-center">
-            {/* Use the RegisterCTA component to handle signup vs register */}
-            <RegisterCTA />
+            {/* Temporarily hide "Build My Profile" button until the logic is fixed */}
+            {/* <RegisterCTA /> */}
           </div>
         </section>
 
