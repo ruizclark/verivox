@@ -5,6 +5,9 @@ import { supabaseAdmin } from "@/lib/supabase/admin"
 import { notFound, redirect } from "next/navigation"
 import EditProfileForm, { ProfileData } from "@/components/EditProfileForm"
 
+// ✅ NEW: import delete button
+import DeleteAccountButton from "@/components/DeleteAccountButton"
+
 export const dynamic = "force-dynamic"
 
 interface Props {
@@ -30,7 +33,7 @@ export default async function EditProfilePage({ params }: Props) {
   const { data: profile, error } = await supabaseAdmin
     .from("profiles")
     .select(
-      "full_name,slug,photo_url,graduation_year,title,employer,location,linkedin_url,website_url,resume_url,about"
+      "full_name,photo_url,graduation_year,title,employer,location,linkedin_url,website_url,resume_url,about"
     )
     .eq("user_id", userId)
     .single()
@@ -41,7 +44,6 @@ export default async function EditProfilePage({ params }: Props) {
 
   const initialProfile: ProfileData = {
     full_name:       profile.full_name,
-    slug:            profile.slug,
     photo_url:       profile.photo_url,
     graduation_year: profile.graduation_year,
     title:           profile.title,
@@ -53,5 +55,13 @@ export default async function EditProfilePage({ params }: Props) {
     about:           profile.about,
   }
 
-  return <EditProfileForm userId={userId} initialProfile={initialProfile} />
+  return (
+    <>
+      <EditProfileForm userId={userId} initialProfile={initialProfile} />
+      {/* ✅ NEW: delete account section (button includes the required warning text) */}
+      <div className="max-w-xl mx-auto">
+        <DeleteAccountButton />
+      </div>
+    </>
+  )
 }

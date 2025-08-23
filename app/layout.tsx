@@ -15,18 +15,22 @@ import SupabaseProvider from "./providers/SupabaseProvider"
 // Import TooltipProvider
 import { TooltipProvider } from "@/components/ui/tooltip"
 
+// ✅ NEW: catches Supabase recovery links and routes to /update-password
+import PasswordRecoveryRouter from "@/components/PasswordRecoveryRouter"
+
 // Import the Inter font from Google Fonts
 const inter = Inter({ subsets: ["latin"] })
 
 // Define the metadata for the page
 export const metadata: Metadata = {
   title: "VERIVOX - Amplifying the Voices of the EdLD Community",
-  description: "A platform for Harvard EdLD students and alumni to share their work and connect with each other.",
+  description:
+    "A platform for Harvard EdLD students and alumni to share their work and connect with each other.",
   generator: "v0.dev",
   // 👇 Tell Next to use this PNG as the favicon
   icons: {
-    icon: "/images/verivox-logo.png"
-  }
+    icon: "/images/verivox-logo.png",
+  },
 }
 
 // Define the RootLayout component
@@ -39,6 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        {/* ✅ Minimal insert: watches for #type=recovery and forwards to /update-password */}
+        <PasswordRecoveryRouter />
+
         {/* Wrap entire app in SupabaseProvider so all hooks share one client */}
         <SupabaseProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

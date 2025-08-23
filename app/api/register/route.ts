@@ -38,6 +38,27 @@ export async function POST(req: Request) {
       approved,
     } = body
 
+    // ✅ NEW: Block duplicate registration for this user
+    const { data: existingProfile, error: existingErr } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+
+    if (existingErr) {
+      return NextResponse.json(
+        { error: existingErr.message },
+        { status: 500 }
+      )
+    }
+
+    if (existingProfile) {
+      return NextResponse.json(
+        { error: "You are already registered." },
+        { status: 400 }
+      )
+    }
+
     // Upsert the complete object, including user_id
     const { error: upsertError } = await supabaseAdmin
       .from("profiles")
@@ -45,7 +66,7 @@ export async function POST(req: Request) {
         [
           {
             id:               user.id,
-            user_id:          user.id,    // ← added this line
+            user_id:          user.id,    // ← existing behavior
             full_name,
             slug,
             photo_url,

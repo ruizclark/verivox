@@ -1,43 +1,43 @@
 // components/ResumeUpload.tsx
 
-// This component allows users to upload their resumes to Supabase Storage.
 "use client"
 
-// Use the shared Supabase client
 import React, { useState } from "react"
 import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-// Interface Props 
 interface ResumeUploadProps {
   userId: string
   onUploadSuccess?: (url: string) => void
 }
 
-// Export the ResumeUpload component
 export default function ResumeUpload({
   userId,
   onUploadSuccess,
 }: ResumeUploadProps) {
-  // Use the shared Supabase client
-  const supabase = useSupabaseClient()  // shared instance
+  const supabase = useSupabaseClient()
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState("")
 
-  // Handle file change event
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Check if the file is a PDF
     setUploading(true)
     setMessage("")
 
-    // Build a unique path for the file
-    const path = `${userId}/${Date.now()}-${file.name}`
+    // ✅ Minimal guard: ensure we have the signed-in user and use their UID for the path
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setMessage("Upload failed: not authenticated.")
+      setUploading(false)
+      return
+    }
 
-    // 1Upload the file
+    // IMPORTANT: path must start with auth.uid() to satisfy your RLS policy
+    const path = `${user.id}/${Date.now()}-${file.name}`
+
     const { error: uploadError } = await supabase.storage
       .from("resumes")
       .upload(path, file, {
@@ -45,7 +45,6 @@ export default function ResumeUpload({
         contentType: file.type,
       })
 
-    // Handle upload error
     if (uploadError) {
       console.error("Upload failed:", uploadError.message)
       setMessage("Upload failed: " + uploadError.message)
@@ -53,24 +52,14 @@ export default function ResumeUpload({
       return
     }
 
-    // Retrieve the public URL
-    const { data: urlData } = supabase.storage
-      .from("resumes")
-      .getPublicUrl(path)
-
+    const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(path)
     const publicUrl = urlData.publicUrl
-    console.log("Upload succeeded! Public URL:", publicUrl)
+
     setMessage("Upload successful!")
-
-    // Notify parent
-    if (onUploadSuccess) {
-      onUploadSuccess(publicUrl)
-    }
-
+    onUploadSuccess?.(publicUrl)
     setUploading(false)
   }
 
-  // Render the component
   return (
     <div className="space-y-2">
       <Input

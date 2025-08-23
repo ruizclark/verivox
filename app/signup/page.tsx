@@ -23,18 +23,33 @@ export default function SignUpPage() {
     setErrorMsg("")
     setLoading(true)
 
-    // Check if email is valid
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/login` }
     })
     
-    // Check if the email is already registered
     setLoading(false)
+
+    // ✅ Minimal patch:
+    // Supabase may return no error but data.user.identities = []
+    // when the email is already registered.
+    if (!error && data?.user && Array.isArray((data.user as any).identities) && (data.user as any).identities.length === 0) {
+      setErrorMsg("An account with this email already exists. Please log in or reset your password.")
+      setStep("form")
+      return
+    }
+
     if (error) {
-      setErrorMsg(error.message)
+      const alreadyRegistered = /registered|already exists/i.test(error.message)
+      setErrorMsg(
+        alreadyRegistered
+          ? "An account with this email already exists. Please log in or reset your password."
+          : error.message
+      )
+      setStep("form")
     } else {
+      // Default behavior: show the 'Almost there!' screen
       setStep("checkEmail")
     }
   }
@@ -112,6 +127,13 @@ export default function SignUpPage() {
         </a>
         .
       </p>
+
+      <p className="text-sm">
+        <a href="/reset-password" className="text-blue-600 underline">
+          Forgot your password?
+        </a>
+      </p>
+
     </div>
   )
 }

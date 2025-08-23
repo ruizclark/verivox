@@ -100,6 +100,11 @@ export default function LoginPage() {
         <Button type="submit" className="w-full">
           Log in
         </Button>
+        <p className="text-sm">
+          <a href="/reset-password" className="text-blue-600 underline">
+            Forgot your password?
+          </a>
+        </p>
       </form>
     </div>
   )
