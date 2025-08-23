@@ -87,17 +87,6 @@ export default function AboutPage() {
             {/* <RegisterCTA /> */}
           </div>
         </section>
-
-        {/* Add section with contact info */}
-        <section>
-          <h2 className="font-serif text-2xl font-bold mb-4">Contact Us</h2>
-          <p>
-            If you have any questions or feedback about VERIVOX, please don't hesitate to contact us at{" "}
-            <a href="mailto:ruizclark@gse.harvard.edu" className="text-harvard-crimson hover:underline">
-              ruizclark@gse.harvard.edu
-            </a>.
-          </p>
-        </section>
       </div>
     </div>
   )
