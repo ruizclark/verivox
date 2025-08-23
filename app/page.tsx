@@ -33,13 +33,36 @@ export default async function Home() {
   // Fetch the 4 most recent articles
   const { data: latestArticles, error: artErr } = await supabaseAdmin
     .from("articles")
-    .select("id, title, author_name, date, image_url, excerpt")
+    // ✅ Include author_id so we can resolve name if author_name is an email
+    .select("id, title, author_id, author_name, date, image_url, excerpt")
     .order("date", { ascending: false })
     .limit(4)
 
   // Check for errors in fetching articles
   if (artErr) {
     console.error("Error loading latest articles:", artErr)
+  }
+
+  // ✅ If any article's author_name is an email, fetch names from profiles in one batch
+  const authorIds =
+    (latestArticles ?? [])
+      .map((a: any) => a.author_id)
+      .filter((v: any): v is string => Boolean(v))
+
+  let authorNameById: Record<string, string> = {}
+  if (authorIds.length > 0) {
+    const { data: authors, error: authorsErr } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", authorIds)
+
+    if (authorsErr) {
+      console.error("Error loading author names:", authorsErr)
+    } else if (authors) {
+      authorNameById = Object.fromEntries(
+        authors.map((u: { id: string; full_name: string }) => [u.id, u.full_name])
+      )
+    }
   }
 
   // Check if the user is logged in
@@ -202,8 +225,9 @@ export default async function Home() {
                     <h3 className="font-serif text-lg font-bold text-gray-900">
                       {p.full_name}
                     </h3>
+                    {/* ✅ Changed: Graduated → Class of */}
                     <p className="text-sm text-gray-500">
-                      Graduated {p.graduation_year}
+                      Class of {p.graduation_year}
                     </p>
                     <p className="mt-2 line-clamp-3 text-sm text-gray-600">
                       {p.title} at {p.employer}
@@ -241,33 +265,42 @@ export default async function Home() {
 
           {/* Article Cards */}
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:gap-12">
-            {latestArticles?.map((a) => (
-              <Link href={`/articles/${a.id}`} key={a.id}>
-                <Card className="overflow-hidden transition-all hover:shadow-lg border border-gray-200">
-                  <div className="aspect-video overflow-hidden">
-                    <Image
-                      src={a.image_url}
-                      alt={a.title}
-                      width={400}
-                      height={200}
-                      className="h-full w-full object-cover transition-all hover:scale-105"
-                    />
-                  </div>
-                  {/* Article details */}
-                  <CardContent className="p-4">
-                    <h3 className="font-serif text-lg font-bold text-gray-900">
-                      {a.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      By {a.author_name} • {format(new Date(a.date), "MMMM d, yyyy")}
-                    </p>
-                    <p className="mt-2 line-clamp-3 text-sm">
-                      {a.excerpt}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {latestArticles?.map((a: any) => {
+              const looksLikeEmail =
+                typeof a.author_name === "string" && a.author_name.includes("@")
+              const displayAuthor =
+                looksLikeEmail
+                  ? (authorNameById[a.author_id] ?? a.author_name)
+                  : a.author_name
+
+              return (
+                <Link href={`/articles/${a.id}`} key={a.id}>
+                  <Card className="overflow-hidden transition-all hover:shadow-lg border border-gray-200">
+                    <div className="aspect-video overflow-hidden">
+                      <Image
+                        src={a.image_url}
+                        alt={a.title}
+                        width={400}
+                        height={200}
+                        className="h-full w-full object-cover transition-all hover:scale-105"
+                      />
+                    </div>
+                    {/* Article details */}
+                    <CardContent className="p-4">
+                      <h3 className="font-serif text-lg font-bold text-gray-900">
+                        {a.title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        By {displayAuthor} • {format(new Date(a.date), "MMMM d, yyyy")}
+                      </p>
+                      <p className="mt-2 line-clamp-3 text-sm">
+                        {a.excerpt}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
+            })}
           </div>
 
           {/* Button to view all articles */}

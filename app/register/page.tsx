@@ -1,5 +1,4 @@
-// app/register/page.tsx
-
+// File: app/register/page.tsx
 // This file is part of the "Alumni Network" project.
 "use client"
 
@@ -21,23 +20,41 @@ export default function RegisterPage() {
 
   // Auth state
   const [loadingAuth, setLoadingAuth] = useState(true)
-  const [errorMsg, setErrorMsg]     = useState("")
-  const [userId, setUserId]         = useState<string>("")
+  const [errorMsg, setErrorMsg]       = useState("")
+  const [userId, setUserId]           = useState<string>("")
+
+  // ✅ NEW: track if a profile already exists
+  const [profileExists, setProfileExists] = useState(false)
 
   // Check if user is authenticated
   useEffect(() => {
-    if (!session) {
-      router.push("/login")
-    // Redirect to login if not authenticated
-    } else if (!session.user.confirmed_at) {
-      setErrorMsg("Please confirm your email first.")
-    // Redirect to confirmation page if email not confirmed
-    } else {
-      setUserId(session.user.id)
+    const checkAuthAndProfile = async () => {
+      if (!session) {
+        router.push("/login")
+      // Redirect to login if not authenticated
+      } else if (!session.user.confirmed_at) {
+        setErrorMsg("Please confirm your email first.")
+      // Redirect to confirmation page if email not confirmed
+      } else {
+        setUserId(session.user.id)
+
+        // ✅ NEW: query profiles table to see if user already registered
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .maybeSingle()
+
+        if (profile) {
+          setProfileExists(true)
+          setErrorMsg("You are already registered.")
+        }
+      }
+      setLoadingAuth(false)
     }
-    // Set userId if authenticated
-    setLoadingAuth(false)
-  }, [router, session])
+
+    checkAuthAndProfile()
+  }, [router, session, supabase])
 
   // Form state
   const [fullName, setFullName]             = useState("")  
@@ -68,6 +85,11 @@ export default function RegisterPage() {
     if (!resumeUrl)             return setErrorMsg("Please upload your résumé.")
     if (!about.trim())          return setErrorMsg("Please share something about yourself.")
 
+    // ✅ Prevent submitting if profile already exists
+    if (profileExists) {
+      return setErrorMsg("You are already registered.")
+    }
+
     // Generate slug
     const slug = fullName
       .trim()
@@ -83,8 +105,8 @@ export default function RegisterPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         full_name:       fullName,
-        slug,                    // existing: include slug
-        photo_url:       photoUrl || "",  // EDIT: send empty string if no photo
+        slug,                    
+        photo_url:       photoUrl || "", 
         graduation_year: parseInt(graduationYear, 10),
         title,
         employer,
@@ -101,10 +123,8 @@ export default function RegisterPage() {
     const json = await res.json()
     setSubmitting(false)
 
-    // Check if the response is ok
     if (res.ok) {
       router.push("/register/pending")
-    // Redirect to pending page
     } else {
       setErrorMsg(json.error || "Registration failed.")
     }
@@ -113,6 +133,20 @@ export default function RegisterPage() {
   // Loading state 
   if (loadingAuth) {
     return <p className="text-center py-8">Loading…</p>
+  }
+
+  // ✅ If profile already exists, show alert and link to edit page
+  if (profileExists) {
+    return (
+      <div className="max-w-md mx-auto py-8 text-center">
+        <p className="text-red-600 font-semibold mb-4">
+          You are already registered.
+        </p>
+        <Button onClick={() => router.push(`/profiles/${userId}/edit`)}>
+          Edit My Profile
+        </Button>
+      </div>
+    )
   }
 
   // Error state
@@ -236,7 +270,7 @@ export default function RegisterPage() {
 
         {/* Photo Upload (optional) */}
         <div>
-          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  {/* NEW: insert PhotoUpload */}
+          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  
           {photoUrl && (
             <img
               src={photoUrl}
@@ -260,6 +294,13 @@ export default function RegisterPage() {
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? "Submitting…" : "Submit Profile"}
         </Button>
+
+        <p className="text-sm mt-2">
+          <a href="/reset-password" className="text-blue-600 underline">
+            Forgot your password?
+          </a>
+        </p>
+
       </form>
     </div>
   )
