@@ -27,7 +27,7 @@ export default function TermsPage() {
         <ul>
           <li><strong>Registration requirements.</strong> You must provide a valid email address, select a secure password, and complete any additional verification steps required by the Site.</li>
           <li><strong>Account security.</strong> You are responsible for maintaining the confidentiality of your account credentials and for all activities conducted under your account.</li>
-          <li><strong>Account deletion.</strong> You may request deletion of your account and associated data at any time by contacting us (see Section 15).</li>
+          <li><strong>Account deletion.</strong> You may delete your account at any time by navigating to the "Edit Profile" page. Once deleted, all data associated with the account cannot be recovered or restored.</li>
         </ul>
 
         <h2>4. User Content</h2>
