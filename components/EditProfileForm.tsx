@@ -65,6 +65,13 @@ export default function EditProfileForm({
       return
     }
 
+    // ✅ Enforce 2013+
+    const gy = parseInt(graduationYear, 10)
+    if (Number.isNaN(gy) || gy < 2013) {
+      setErrorMsg("Graduation year must be 2013 or later.")
+      return
+    }
+
     setSaving(true)
 
     const { error } = await supabase
@@ -72,7 +79,7 @@ export default function EditProfileForm({
       .update({
         full_name:       fullName,
         photo_url:       photoUrl,
-        graduation_year: Number(graduationYear),
+        graduation_year: gy,
         title,
         employer,
         location,
@@ -115,6 +122,7 @@ export default function EditProfileForm({
           <label className="block text-sm font-medium">Graduation Year</label>
           <Input
             type="number"
+            min={2013}                      
             value={graduationYear}
             onChange={(e) => setGraduationYear(e.target.value)}
             disabled={saving}

@@ -3,7 +3,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { useSupabaseClient } from "@supabase/auth-helpers-react"
+// (removed) import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -16,7 +16,7 @@ export default function ResumeUpload({
   userId,
   onUploadSuccess,
 }: ResumeUploadProps) {
-  const supabase = useSupabaseClient()
+  // (removed) const supabase = useSupabaseClient()
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState("")
 
@@ -27,37 +27,32 @@ export default function ResumeUpload({
     setUploading(true)
     setMessage("")
 
-    // ✅ Minimal guard: ensure we have the signed-in user and use their UID for the path
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setMessage("Upload failed: not authenticated.")
-      setUploading(false)
-      return
-    }
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      form.append("userId", userId)
 
-    // IMPORTANT: path must start with auth.uid() to satisfy your RLS policy
-    const path = `${user.id}/${Date.now()}-${file.name}`
-
-    const { error: uploadError } = await supabase.storage
-      .from("resumes")
-      .upload(path, file, {
-        upsert: true,
-        contentType: file.type,
+      const res = await fetch("/api/upload-resume", {
+        method: "POST",
+        body: form,
       })
 
-    if (uploadError) {
-      console.error("Upload failed:", uploadError.message)
-      setMessage("Upload failed: " + uploadError.message)
+      const json = await res.json()
+
+      if (!res.ok) {
+        setMessage("Upload failed: " + (json?.error || "Unknown error"))
+        setUploading(false)
+        return
+      }
+
+      const publicUrl = json.publicUrl as string
+      setMessage("Upload successful!")
+      onUploadSuccess?.(publicUrl)
+    } catch {
+      setMessage("Upload failed: network error")
+    } finally {
       setUploading(false)
-      return
     }
-
-    const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(path)
-    const publicUrl = urlData.publicUrl
-
-    setMessage("Upload successful!")
-    onUploadSuccess?.(publicUrl)
-    setUploading(false)
   }
 
   return (
