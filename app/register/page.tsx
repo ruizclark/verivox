@@ -1,18 +1,15 @@
 // File: app/register/page.tsx
-// This file is part of the "Alumni Network" project.
 "use client"
 
-// Import necessary libraries and components
 import React, { useState, useEffect } from "react"
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 import ResumeUpload from "@/components/ResumeUpload"
-import PhotoUpload from "@/components/PhotoUpload"       // NEW: import PhotoUpload
+import PhotoUpload from "@/components/PhotoUpload"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
-// This page handles the registration process for users.
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = useSupabaseClient()
@@ -23,22 +20,18 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg]       = useState("")
   const [userId, setUserId]           = useState<string>("")
 
-  // ✅ NEW: track if a profile already exists
+  // ✅ Track existing profile
   const [profileExists, setProfileExists] = useState(false)
 
-  // Check if user is authenticated
   useEffect(() => {
     const checkAuthAndProfile = async () => {
       if (!session) {
         router.push("/login")
-      // Redirect to login if not authenticated
       } else if (!session.user.confirmed_at) {
         setErrorMsg("Please confirm your email first.")
-      // Redirect to confirmation page if email not confirmed
       } else {
         setUserId(session.user.id)
 
-        // ✅ NEW: query profiles table to see if user already registered
         const { data: profile } = await supabase
           .from("profiles")
           .select("id")
@@ -57,25 +50,23 @@ export default function RegisterPage() {
   }, [router, session, supabase])
 
   // Form state
-  const [fullName, setFullName]             = useState("")  
-  const [graduationYear, setGraduationYear] = useState("")  
-  const [title, setTitle]                   = useState("")  
-  const [employer, setEmployer]             = useState("")  
-  const [location, setLocation]             = useState("")  
-  const [linkedinUrl, setLinkedinUrl]       = useState("")  
-  const [websiteUrl, setWebsiteUrl]         = useState("")  
-  const [resumeUrl, setResumeUrl]           = useState("")  
-  const [about, setAbout]                   = useState("")  
-  const [photoUrl, setPhotoUrl]             = useState("")  // NEW: state for photo_url
+  const [fullName, setFullName]             = useState("")
+  const [graduationYear, setGraduationYear] = useState("")
+  const [title, setTitle]                   = useState("")
+  const [employer, setEmployer]             = useState("")
+  const [location, setLocation]             = useState("")
+  const [linkedinUrl, setLinkedinUrl]       = useState("")
+  const [websiteUrl, setWebsiteUrl]         = useState("")
+  const [resumeUrl, setResumeUrl]           = useState("")
+  const [about, setAbout]                   = useState("")
+  const [photoUrl, setPhotoUrl]             = useState("")
 
   const [submitting, setSubmitting] = useState(false)
 
-  // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
 
-    // Validation checks for required fields 
     if (!userId)                return setErrorMsg("Not signed in.")
     if (!fullName.trim())       return setErrorMsg("Full name is required.")
     if (!graduationYear)        return setErrorMsg("Graduation year is required.")
@@ -84,13 +75,14 @@ export default function RegisterPage() {
     if (!location.trim())       return setErrorMsg("Location is required.")
     if (!resumeUrl)             return setErrorMsg("Please upload your résumé.")
     if (!about.trim())          return setErrorMsg("Please share something about yourself.")
+    if (profileExists)          return setErrorMsg("You are already registered.")
 
-    // ✅ Prevent submitting if profile already exists
-    if (profileExists) {
-      return setErrorMsg("You are already registered.")
+    // ✅ Enforce 2013+
+    const gy = parseInt(graduationYear, 10)
+    if (Number.isNaN(gy) || gy < 2013) {
+      return setErrorMsg("Graduation year must be 2013 or later.")
     }
 
-    // Generate slug
     const slug = fullName
       .trim()
       .toLowerCase()
@@ -99,15 +91,14 @@ export default function RegisterPage() {
 
     setSubmitting(true)
 
-    // Check if slug already exists
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         full_name:       fullName,
-        slug,                    
-        photo_url:       photoUrl || "", 
-        graduation_year: parseInt(graduationYear, 10),
+        slug,
+        photo_url:       photoUrl || "",
+        graduation_year: gy,
         title,
         employer,
         location,
@@ -119,7 +110,6 @@ export default function RegisterPage() {
       }),
     })
 
-    // Handle response
     const json = await res.json()
     setSubmitting(false)
 
@@ -130,12 +120,10 @@ export default function RegisterPage() {
     }
   }
 
-  // Loading state 
   if (loadingAuth) {
     return <p className="text-center py-8">Loading…</p>
   }
 
-  // ✅ If profile already exists, show alert and link to edit page
   if (profileExists) {
     return (
       <div className="max-w-md mx-auto py-8 text-center">
@@ -149,7 +137,6 @@ export default function RegisterPage() {
     )
   }
 
-  // Error state
   if (errorMsg && !userId) {
     return (
       <div className="max-w-md mx-auto py-8 text-center">
@@ -161,7 +148,6 @@ export default function RegisterPage() {
     )
   }
 
-  // Main form 
   return (
     <div className="max-w-md mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Profile Information</h1>
@@ -184,6 +170,7 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium">Graduation Year</label>
           <Input
             type="number"
+            min={2013}                         
             value={graduationYear}
             onChange={(e) => setGraduationYear(e.target.value)}
             disabled={submitting}
@@ -255,7 +242,7 @@ export default function RegisterPage() {
           <ResumeUpload userId={userId} onUploadSuccess={setResumeUrl} />
           {resumeUrl && (
             <p className="text-green-600 text-sm">
-              Résumé ready!{' '}
+              Résumé ready!{" "}
               <a
                 href={resumeUrl}
                 target="_blank"
@@ -270,7 +257,7 @@ export default function RegisterPage() {
 
         {/* Photo Upload (optional) */}
         <div>
-          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />  
+          <PhotoUpload userId={userId} onUploadSuccess={setPhotoUrl} />
           {photoUrl && (
             <img
               src={photoUrl}
