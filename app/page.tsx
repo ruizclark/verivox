@@ -16,13 +16,14 @@ import RegisterCTA from "@/components/RegisterCTA"
 import AccountLink from "@/components/AccountLink"   
 
 // Import AccountLink component for dynamic account linking
+export const dynamic = "force-dynamic"
 export default async function Home() {                
   // Retch the 3 most recent approved profiles
   const { data: featuredProfiles, error: profErr } = await supabaseAdmin
     .from("profiles")
     .select("id, slug, full_name, photo_url, graduation_year, title, employer")
     .eq("approved", true)
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false }) // newest first
     .limit(3)
 
   // Check for errors in fetching profiles

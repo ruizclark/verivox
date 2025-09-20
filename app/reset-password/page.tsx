@@ -2,11 +2,13 @@
 "use client"
 
 import React, { useState } from "react"
-import { supabase } from "@/lib/supabase/client"
+// ⬇️ CHANGE: use the helpers client instead of importing a separate singleton
+import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 export default function ResetPasswordPage() {
+  const supabase = useSupabaseClient() // ⬅️ NEW
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
