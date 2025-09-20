@@ -2,23 +2,26 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase/client"
+// ✅ use the shared helpers client instead of a separate singleton
+import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 export default function UpdatePasswordPage() {
   const router = useRouter()
+  const supabase = useSupabaseClient() // ✅ shared client
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
-  const [ready, setReady] = useState(false)   // ✅ ensure we have/attempt a session before submit
+  const [ready, setReady] = useState(false)   // ensure we have/attempt a session before submit
 
   useEffect(() => {
     let cancelled = false
 
     const ensureSession = async () => {
+      setErrorMsg("")
       // Check if a session already exists
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
@@ -28,16 +31,20 @@ export default function UpdatePasswordPage() {
 
       // If no session yet, try to hydrate from the URL hash
       const hash = typeof window !== "undefined" ? window.location.hash : ""
-      if (hash && hash.includes("access_token")) {
+
+      // ✅ First try the modern flow: exchange the recovery code for a session
+      if (hash && hash.includes("type=recovery")) {
+        const { error } = await supabase.auth.exchangeCodeForSession(hash)
+        if (error && !cancelled) setErrorMsg(error.message)
+      } else if (hash && hash.includes("access_token")) {
+        // 🔁 Fallback to your existing setSession logic (older links)
         const params = new URLSearchParams(hash.slice(1))
         const access_token = params.get("access_token") || ""
         const refresh_token = params.get("refresh_token") || ""
 
         if (access_token && refresh_token) {
           const { error } = await supabase.auth.setSession({ access_token, refresh_token })
-          if (error) {
-            if (!cancelled) setErrorMsg(error.message)
-          }
+          if (error && !cancelled) setErrorMsg(error.message)
         }
       }
 
@@ -48,7 +55,7 @@ export default function UpdatePasswordPage() {
 
     ensureSession()
     return () => { cancelled = true }
-  }, [])
+  }, [supabase])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,7 +96,7 @@ export default function UpdatePasswordPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={loading || !ready}   // ✅ prevent submit until session is ready
+            disabled={loading || !ready}   // prevent submit until session is ready
           />
         </div>
 

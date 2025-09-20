@@ -62,6 +62,12 @@ export default async function EditProfilePage({ params }: Props) {
       <div className="max-w-xl mx-auto">
         <DeleteAccountButton />
       </div>
+
+      <p className="max-w-xl mx-auto mt-4 mb-8 text-center">
+        <a href="/update-password" className="text-blue-600 underline">
+          Change my password
+        </a>
+      </p>
     </>
   )
 }
