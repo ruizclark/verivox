@@ -6,11 +6,13 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import ApproveButton from "@/components/ApproveButton"  // <- client-only
+import RejectButton from "@/components/RejectButton"
 
 // Define the Profile type
 type Profile = {
   id: string
   full_name: string
+  resume_url: string | null
 }
 
 // Import the ApproveButton component
@@ -48,7 +50,7 @@ export default async function AdminApprovalsPage() {
   // Fetch profiles that are not approved
   const { data, error } = await supabaseAdmin
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, resume_url") // ⬅️ added resume_url
     .eq("approved", false)
 
   // Check for errors in fetching profiles
@@ -71,11 +73,43 @@ export default async function AdminApprovalsPage() {
       {profiles.map((p) => (
         <div
           key={p.id}
-          className="flex items-center justify-between p-4 border rounded-lg"
+          className="flex flex-col gap-3 p-4 border rounded-lg"
         >
-          {/* Display the profile name */}
-          <span className="font-semibold">{p.full_name}</span>
-          <ApproveButton id={p.id} />
+          {/* Top row: name + approve button */}
+          <div className="flex items-center justify-between">
+            <span className="font-semibold">{p.full_name}</span>
+            <ApproveButton id={p.id} />
+            <RejectButton id={p.id} />
+          </div>
+
+          {/* Resume link + optional quick preview */}
+          {p.resume_url ? (
+            <div className="space-y-2">
+              <a
+                href={p.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-harvard-crimson underline"
+              >
+                View résumé (PDF)
+              </a>
+
+              <details className="mt-1">
+                <summary className="cursor-pointer text-sm text-gray-600">
+                  Quick preview
+                </summary>
+                <div className="mt-2 border rounded overflow-hidden">
+                  <iframe
+                    src={p.resume_url}
+                    className="w-full h-96"
+                    title={`${p.full_name} résumé`}
+                  />
+                </div>
+              </details>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No résumé uploaded.</p>
+          )}
         </div>
       ))}
     </div>
