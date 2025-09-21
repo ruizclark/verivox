@@ -75,12 +75,14 @@ export default async function AdminApprovalsPage() {
           key={p.id}
           className="flex flex-col gap-3 p-4 border rounded-lg"
         >
-          {/* Top row: name + approve button */}
-          <div className="flex items-center justify-between">
-            <span className="font-semibold">{p.full_name}</span>
+        {/* Top row: name + action buttons */}
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">{p.full_name}</span>
+          <div className="flex gap-2">
             <ApproveButton id={p.id} />
             <RejectButton id={p.id} />
           </div>
+        </div>
 
           {/* Resume link + optional quick preview */}
           {p.resume_url ? (
