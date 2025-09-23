@@ -1,6 +1,5 @@
 // components/header.tsx
 
-// This component is a client component because it uses the `useSession` hook
 "use client"
 
 // Import React from "react"
@@ -8,6 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { UserCircle } from "lucide-react"
+import { useEffect, useState } from "react"   // ✅ added
 
 // Import the React helpers from auth-helpers-react
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react"
@@ -22,6 +22,26 @@ export function Header() {
 
   // Check if the user is logged in
   const loggedIn = !!session?.user
+
+  // ✅ track approval status
+  const [approved, setApproved] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      if (!userId) return setApproved(null)
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("approved")
+        .eq("user_id", userId)
+        .maybeSingle()
+      if (!cancelled) setApproved(error ? null : !!data?.approved)
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [userId, supabase])
 
   // Check if the user is an admin
   return (
@@ -81,16 +101,18 @@ export function Header() {
                 </Button>
               </Link>
 
-              {/* Add New Article link for authenticated users */}
-              <Link href="/articles/new">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  New Article
-                </Button>
-              </Link>
+              {/* ✅ Only show if approved */}
+              {approved === true && (
+                <Link href="/articles/new">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    New Article
+                  </Button>
+                </Link>
+              )}
 
               {/* Log out button */}
               <Button
