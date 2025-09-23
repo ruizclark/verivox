@@ -6,10 +6,12 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import ApproveButton from "@/components/ApproveButton"  // <- client-only
+import RejectButton from "@/components/RejectButton"    // <- ✅ NEW
 
 // Define the Profile type
 type Profile = {
   id: string
+  user_id: string            // ✅ NEW
   full_name: string
   resume_url: string | null
 }
@@ -49,7 +51,7 @@ export default async function AdminApprovalsPage() {
   // Fetch profiles that are not approved
   const { data, error } = await supabaseAdmin
     .from("profiles")
-    .select("id, full_name, resume_url") // ⬅️ added resume_url
+    .select("id, user_id, full_name, resume_url") // ✅ include user_id
     .eq("approved", false)
 
   // Check for errors in fetching profiles
@@ -74,10 +76,13 @@ export default async function AdminApprovalsPage() {
           key={p.id}
           className="flex flex-col gap-3 p-4 border rounded-lg"
         >
-          {/* Top row: name + approve button */}
+          {/* Top row: name + approve/reject buttons */}
           <div className="flex items-center justify-between">
             <span className="font-semibold">{p.full_name}</span>
-            <ApproveButton id={p.id} />
+            <div className="flex items-center gap-2">
+              <ApproveButton id={p.id} />
+              <RejectButton userId={p.user_id} /> {/* ✅ NEW */}
+            </div>
           </div>
 
           {/* Resume link + optional quick preview */}
