@@ -26,7 +26,10 @@ export default function SignUpPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/login` }
+      options: { 
+        // CHANGED: send users back to our callback route (not /login)
+        emailRedirectTo: `${window.location.origin}/auth/callback` 
+      }
     })
     
     setLoading(false)
@@ -49,7 +52,8 @@ export default function SignUpPage() {
       )
       setStep("form")
     } else {
-      // Default behavior: show the 'Almost there!' screen
+      // CHANGED: explicitly sign out so they remain logged out until they confirm via email
+      await supabase.auth.signOut()
       setStep("checkEmail")
     }
   }
