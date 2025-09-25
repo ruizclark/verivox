@@ -5,12 +5,13 @@
 
 // Import necessary libraries and components
 import React, { useState } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 // Define the SignUpPage component
 export default function SignUpPage() {
+  const supabase = useSupabaseClient()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [step, setStep] = useState<"form" | "checkEmail">("form")
