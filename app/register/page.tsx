@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react"
+import { useSupabaseClient } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/navigation"
 import ResumeUpload from "@/components/ResumeUpload"
 import PhotoUpload from "@/components/PhotoUpload"
@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea"
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = useSupabaseClient()
-  const session = useSession()
 
   // Auth state
   const [loadingAuth, setLoadingAuth] = useState(true)
@@ -25,29 +24,32 @@ export default function RegisterPage() {
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
-      if (!session) {
-        router.push("/login")
-      } else if (!session.user.confirmed_at) {
-        setErrorMsg("Please confirm your email first.")
-      } else {
-        setUserId(session.user.id)
+      const { data: { session: fresh } } = await supabase.auth.getSession();
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("user_id", session.user.id)
-          .maybeSingle()
-
-        if (profile) {
-          setProfileExists(true)
-          setErrorMsg("You are already registered.")
-        }
+      if (!fresh) {
+        setLoadingAuth(false);
+        router.push("/login?next=/register");
+        return;
       }
-      setLoadingAuth(false)
-    }
 
-    checkAuthAndProfile()
-  }, [router, session, supabase])
+      setUserId(fresh.user.id);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", fresh.user.id)
+        .maybeSingle();
+
+      if (profile) {
+        setProfileExists(true);
+        setErrorMsg("You are already registered.");
+      }
+
+      setLoadingAuth(false);
+    };
+
+    checkAuthAndProfile();
+  }, [router, supabase]);
 
   // Form state
   const [fullName, setFullName]             = useState("")
