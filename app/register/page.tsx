@@ -72,8 +72,6 @@ export default function RegisterPage() {
     if (!userId)                return setErrorMsg("Not signed in.")
     if (!fullName.trim())       return setErrorMsg("Full name is required.")
     if (!graduationYear)        return setErrorMsg("Graduation year is required.")
-    if (!title.trim())          return setErrorMsg("Title is required.")
-    if (!employer.trim())       return setErrorMsg("Organization is required.")
     if (!location.trim())       return setErrorMsg("Location is required.")
     if (!resumeUrl)             return setErrorMsg("Please upload your résumé.")
     if (!about.trim())          return setErrorMsg("Please share something about yourself.")
@@ -179,22 +177,28 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* Title */}
+        {/* Title (optional) */}
         <div>
-          <label className="block text-sm font-medium">Title</label>
+          <label className="block text-sm font-medium">
+            Title <span className="text-gray-500">(optional)</span>
+          </label>
           <Input
             type="text"
+            placeholder="(optional)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={submitting}
           />
         </div>
 
-        {/* Organization */}
+        {/* Organization (optional) */}
         <div>
-          <label className="block text-sm font-medium">Organization</label>
+          <label className="block text-sm font-medium">
+            Organization <span className="text-gray-500">(optional)</span>
+          </label>
           <Input
             type="text"
+            placeholder="(optional)"
             value={employer}
             onChange={(e) => setEmployer(e.target.value)}
             disabled={submitting}
@@ -242,6 +246,9 @@ export default function RegisterPage() {
             Upload Résumé (PDF)
           </label>
           <ResumeUpload userId={userId} onUploadSuccess={setResumeUrl} />
+          <p className="text-sm text-gray-600 mt-2">
+            <strong>NOTE:</strong> When uploading your résumé, please make sure to clearly indicate when you were in the EdLD program. Also, please note that your résumé will be made publicly available. As such, redact information that you do not want made public.
+          </p>
           {resumeUrl && (
             <p className="text-green-600 text-sm">
               Résumé ready!{" "}

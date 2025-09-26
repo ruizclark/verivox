@@ -13,7 +13,7 @@ export default function PendingRegistrationPage() {
       <h1 className="text-3xl font-bold mb-4">Thank You for Registering!</h1>
       {/* The message displayed to the user */}
       <p className="mb-6">
-        VERIVOX is an exclusive platform for the HGSE EdLD community. Your profile is currently under review and will be approved once we’ve verified your program affiliation.
+        VERIVOX is an exclusive platform for the HGSE EdLD community. Your profile is currently under review and will be approved once we’ve verified your program affiliation. Please check back within 24-48 hours. To inquire, email ruizclark@gse.harvard.edu.
       </p>
       <Link href="/" passHref>
         {/* ↓ Removed size="md" (invalid) so this button uses the default size */}
